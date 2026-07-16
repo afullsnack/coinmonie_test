@@ -4,6 +4,7 @@ export interface Token {
 	name: string;
 	network: string;
 	logoColor: string;
+	address: string;
 }
 
 export interface Bank {
@@ -22,16 +23,16 @@ export const NETWORKS = [
 ];
 
 export const TOKENS: Token[] = [
-	{ id: "usdc", symbol: "USDC", name: "USD Coin", network: "base", logoColor: "#2775ca" },
-	{ id: "usdt", symbol: "USDT", name: "Tether", network: "ethereum", logoColor: "#26a17b" },
-	{ id: "eth", symbol: "ETH", name: "Ethereum", network: "ethereum", logoColor: "#627eea" },
-	{ id: "dai", symbol: "DAI", name: "Dai", network: "base", logoColor: "#f5ac37" },
-	{ id: "wbtc", symbol: "WBTC", name: "Wrapped Bitcoin", network: "ethereum", logoColor: "#f7931a" },
-	{ id: "link", symbol: "LINK", name: "Chainlink", network: "ethereum", logoColor: "#2a5ada" },
-	{ id: "uni", symbol: "UNI", name: "Uniswap", network: "ethereum", logoColor: "#ff007a" },
-	{ id: "aave", symbol: "AAVE", name: "Aave", network: "ethereum", logoColor: "#b6509e" },
-	{ id: "matic", symbol: "POL", name: "Polygon", network: "polygon", logoColor: "#8247e5" },
-	{ id: "atom", symbol: "ATOM", name: "Cosmos", network: "ethereum", logoColor: "#2e3148" },
+	{ id: "usdc", symbol: "USDC", name: "USD Coin", network: "base", logoColor: "#2775ca", address: `0x`.padEnd(32, '0') },
+	{ id: "usdt", symbol: "USDT", name: "Tether", network: "ethereum", logoColor: "#26a17b", address: `0x`.padEnd(32, '0') },
+	{ id: "eth", symbol: "ETH", name: "Ethereum", network: "ethereum", logoColor: "#627eea", address: `0x`.padEnd(32, '0') },
+	{ id: "dai", symbol: "DAI", name: "Dai", network: "base", logoColor: "#f5ac37", address: `0x`.padEnd(32, '0') },
+	{ id: "wbtc", symbol: "WBTC", name: "Wrapped Bitcoin", network: "ethereum", logoColor: "#f7931a", address: `0x`.padEnd(32, '0') },
+	{ id: "link", symbol: "LINK", name: "Chainlink", network: "ethereum", logoColor: "#2a5ada", address: `0x`.padEnd(32, '0') },
+	{ id: "uni", symbol: "UNI", name: "Uniswap", network: "ethereum", logoColor: "#ff007a", address: `0x`.padEnd(32, '0') },
+	{ id: "aave", symbol: "AAVE", name: "Aave", network: "ethereum", logoColor: "#b6509e", address: `0x`.padEnd(32, '0') },
+	{ id: "matic", symbol: "POL", name: "Polygon", network: "polygon", logoColor: "#8247e5", address: `0x`.padEnd(32, '0') },
+	{ id: "atom", symbol: "ATOM", name: "Cosmos", network: "ethereum", logoColor: "#2e3148", address: `0x`.padEnd(32, '0') },
 ];
 
 export const FIAT_CURRENCIES = [

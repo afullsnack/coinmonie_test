@@ -1,11 +1,24 @@
 import { useState } from "react";
-import { SearchIcon, XIcon } from "lucide-react";
+import { PlusIcon, SearchIcon, XIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { TOKENS, NETWORKS, type Token } from "@/data/constants";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "./ui/item";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
 
 interface TokenSelectorModalProps {
 	open: boolean;
 	onClose: () => void;
-	onSelect: (token: Token) => void;
+  onSelect: (token: Token) => void;
+  children?: React.ReactNode;
 }
 
 export function TokenSelectorModal({
@@ -29,103 +42,78 @@ export function TokenSelectorModal({
 	if (!open) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-			<div className="w-full max-w-md rounded-2xl bg-[#1a1f2e] border border-white/10 shadow-2xl">
-				<div className="flex items-center justify-between p-4 border-b border-white/10">
-					<h2 className="text-lg font-semibold text-white">
-						Choose a token
-					</h2>
-					<button
-						type="button"
-						onClick={onClose}
-						className="p-1 rounded-full hover:bg-white/10 transition-colors"
-					>
-						<XIcon className="w-5 h-5 text-gray-400" />
-					</button>
-				</div>
-
-				<div className="p-4">
-					<p className="text-sm text-gray-400 mb-4">
-						Select an option from the list or search for token.
-					</p>
-
-					<div className="relative mb-4">
-						<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-						<input
-							type="text"
-							placeholder="Search by name, symbol or address"
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							className="w-full bg-[#0d1117] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
-						/>
-					</div>
-
-					<div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-						<button
-							type="button"
-							onClick={() => setSelectedNetwork(null)}
-							className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-								selectedNetwork === null
-									? "bg-green-500 text-black"
-									: "bg-white/10 text-gray-300 hover:bg-white/20"
-							}`}
-						>
-							All Networks
-						</button>
-						{NETWORKS.map((network) => (
-							<button
-								key={network.id}
-								type="button"
-								onClick={() => setSelectedNetwork(network.id)}
-								className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-									selectedNetwork === network.id
-										? "bg-green-500 text-black"
-										: "bg-white/10 text-gray-300 hover:bg-white/20"
-								}`}
-							>
-								{network.name}
-							</button>
-						))}
-					</div>
-
-					<p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
-						Trending tokens
-					</p>
-
-					<div className="space-y-1 max-h-80 overflow-y-auto">
-						{filteredTokens.map((token) => (
-							<button
-								key={token.id}
-								type="button"
-								onClick={() => {
-									onSelect(token);
-									onClose();
-								}}
-								className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors"
-							>
-								<div
-									className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-									style={{ backgroundColor: token.logoColor }}
-								>
-									{token.symbol.slice(0, 2)}
-								</div>
-								<div className="flex-1 text-left">
-									<p className="text-white font-medium">
-										{token.name}
-									</p>
-									<p className="text-sm text-gray-400">
-										{token.symbol}
-									</p>
-								</div>
-								<span className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-300">
-									{NETWORKS.find((n) => n.id === token.network)
-										?.name || token.network}
-								</span>
-							</button>
-						))}
-					</div>
-				</div>
-			</div>
-		</div>
+    <Dialog open={open} onOpenChange={(open: boolean) => {
+      if (!open) {
+        onClose()
+      }
+		}}>
+    <DialogTrigger>Open</DialogTrigger>
+    <DialogContent className="sm:max-w-4xl p-0! overflow-hidden">
+      <div className="grid grid-cols-3 justify-start w-full">
+        <div className="flex flex-col items-start justify-start gap-3 bg-muted p-4">
+          <DialogHeader>
+            <DialogTitle>Select network</DialogTitle>
+          </DialogHeader>
+          <InputGroup>
+            <InputGroupInput placeholder="Search network" />
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+          </InputGroup>
+          <ItemGroup className="w-full overflow-y-auto gap-2 max-h-[60dvh]">
+            {NETWORKS.map((network, index) => (
+              <Item key={network.id} variant="outline" className="bg-secondary!">
+                <ItemMedia>
+                  <Avatar>
+                    <AvatarImage src={network.url}/>
+                    <AvatarFallback>{network.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </ItemMedia>
+                <ItemContent className="gap-1">
+                  <ItemTitle>{network.name}</ItemTitle>
+                  <ItemDescription className="text-xs">Blockchain network</ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <PlusIcon />
+                  </Button>
+                </ItemActions>
+              </Item>
+            ))}
+          </ItemGroup>
+        </div>
+        <div className="col-span-2 flex flex-col items-start justify-start gap-3 p-4">
+          <DialogHeader>
+            <DialogTitle>Choose a token</DialogTitle>
+            <DialogDescription>
+              Select an option from the list or search for token
+            </DialogDescription>
+					</DialogHeader>
+					<InputGroup>
+            <InputGroupInput placeholder="Search by name, symbol or address" />
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+						</InputGroup>
+						<ItemGroup className="w-full overflow-y-auto gap-2 max-h-[60dvh]">
+            {TOKENS.map((token, index) => (
+              <Item key={token.id} variant="outline" className="bg-secondary!">
+                <ItemMedia>
+                  <Avatar>
+                    <AvatarImage src={token.url}/>
+                    <AvatarFallback>{token.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </ItemMedia>
+                <ItemContent className="gap-1">
+                  <ItemTitle>{token.symbol}</ItemTitle>
+									<ItemDescription className="text-xs">{token.name}.{token.address}</ItemDescription>
+                </ItemContent>
+              </Item>
+            ))}
+          </ItemGroup>
+        </div>
+      </div>
+    </DialogContent>
+	</Dialog>
 	);
 }
