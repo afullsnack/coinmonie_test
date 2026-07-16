@@ -14,7 +14,7 @@ function RouteComponent() {
   console.log(`Using router state to match home`, { matchHome })
 
   return (
-    <Main className="min-h-screen flex flex-col selection:bg-accent selection:text-secondary">
+    <Main className="min-h-screen flex flex-col bg-primary selection:bg-accent selection:text-secondary">
       <Section className='p-1!'>
         <Container className='max-w-lg p-0!'>
      			<header className="flex items-center justify-between">

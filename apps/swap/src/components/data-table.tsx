@@ -99,6 +99,7 @@ import {
   TabsTrigger,
 } from "#/components/ui/tabs"
 import { Link } from "@tanstack/react-router"
+import { cn } from "#/lib/utils"
 
 export const schema = z.object({
   // id: z.number(),
@@ -171,41 +172,42 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return <span className="text-secondary">{row.original.date}</span>
     },
     enableHiding: false,
   },
   {
     accessorKey: "reference",
     header: "Reference",
-    // cell: ({ row }) => (
-    //   <div className="w-32 overflow-clip">
-    //     <Badge variant="outline" className="px-1.5 text-muted-foreground">
-    //       {row.original.reference}
-    //     </Badge>
-    //   </div>
-    // ),
+    cell: ({ row }) => (
+      <span className="text-secondary">
+        {row.original.reference}
+      </span>
+    ),
   },
   {
     accessorFn: (prop) => prop.youWillSend.currency,
-    header: "You'll send",
+		header: "You'll send",
+		cell: ({ row }) => {
+			return <span className="text-secondary">{row.original.youWillSend.amount.toLocaleString('en-US', {maximumFractionDigits:0, minimumFractionDigits:0})} {row.original.youWillSend.currency}</span>
+    },
   },
   {
     accessorFn: (prop) => prop.youWillReceive.currency,
-    header: "You'll receive",
+		header: "You'll receive",
+		cell: ({ row }) => {
+			return <span className="text-secondary">{row.original.youWillReceive.amount.toLocaleString('en-US', {maximumFractionDigits: 0, minimumFractionDigits: 0})} {row.original.youWillReceive.currency}</span>
+    },
   },
   {
     accessorKey: "status",
     header: () => <div className="w-full text-left">Status</div>,
     cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "Completed" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <IconLoader />
-        )}
+			<span className={cn("px-1.5 text-muted-foreground", {
+				"text-green-500": row.original.status === "Completed"
+      })}>
         {row.original.status}
-      </Badge>
+      </span>
     ),
   },
 ]
@@ -506,7 +508,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
-        <Button variant="link" className="w-fit px-0 text-left text-foreground">
+        <Button variant="link" className="w-fit px-0 text-left text-secondary">
           {item.date}
         </Button>
       </DrawerTrigger>

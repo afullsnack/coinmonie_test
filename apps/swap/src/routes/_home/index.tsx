@@ -76,11 +76,11 @@ function Home() {
 								<div className="flex items-center gap-3">
 									<Button
 										onClick={() => setIsTokenModalOpen(true)}
-										className="flex items-center gap-2 rounded-xl px-4 py-3"
-             >
-               {!sendToken && <span>Choose token</span>}
-               {sendToken
-                 && (<>
+										className="flex items-center justify-center gap-2 rounded-3xl px-6 py-4"
+			             >
+			               {!sendToken && <span className="text-sm">Choose token</span>}
+			               {sendToken
+		                 && (<>
                     <div
 											className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
 											style={{
@@ -121,7 +121,7 @@ function Home() {
 			<div className="flex items-center gap-3">
 				<Button
 					onClick={() => setIsTokenModalOpen(true)}
-					className="flex items-center gap-2 rounded-xl px-4 py-3"
+					className="flex items-center gap-2 rounded-3xl px-6 py-4"
 		    >
 		      {!receiveCurrency && <span>Choose token</span>}
 		      {receiveCurrency && (<>
@@ -158,7 +158,7 @@ function Home() {
   return (
     <>
 			<div className="w-full max-w-full">
-        <div className="grid gap-2 rounded-2xl p-2 shadow-2xl overflow-hidden bg-primary mb-3">
+        <div className="grid gap-2 rounded-2xl p-2 shadow-2xl overflow-hidden bg-primary-foreground/5 mb-3">
           <div className="relative grid gap-1">
             <SendComponent />
             <MiddleToggle />
