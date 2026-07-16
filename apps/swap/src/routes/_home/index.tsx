@@ -56,47 +56,47 @@ function Home() {
 
   const SendComponent = () => (
     <div className="bg-muted/10 rounded-xl p-4 flex gap-3 items-center justify-between">
-								<div className="grid items-center justify-start gap-3">
-									<span className="text-gray-400 text-sm">
-										You'll send
-               </span>
-               <Input
-										type="number"
-										placeholder="0.00"
-										value={sendAmount}
-										onChange={(e) =>
-     									handleSendAmountChange(e.target.value)
-										}
-										className={cn(defaultInputStyle, "md:text-4xl text-6xl border-none max-w-xs h-20 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none")}
-									/>
-									<span className="text-gray-500 text-xs">
-									${sendAmount || "0.00"}
-									</span>
-								</div>
-								<div className="flex items-center gap-3">
-									<Button
-										onClick={() => setIsTokenModalOpen(true)}
-										className="flex items-center justify-center gap-2 rounded-3xl px-6 py-4"
-			             >
-			               {!sendToken && <span className="text-sm">Choose token</span>}
-			               {sendToken
-		                 && (<>
-                    <div
-											className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-											style={{
-												backgroundColor: sendToken.logoColor,
-											}}
-										>
-											{sendToken.symbol.slice(0, 2)}
-										</div>
-										<span className="text-white font-medium">
-											{sendToken.symbol}
-                    </span>
-                  </>)}
-										<ChevronDownIcon className="w-4 h-4 text-gray-400" />
-									</Button>
-								</div>
-							</div>
+			<div className="grid items-center justify-start gap-3">
+				<span className="text-gray-400 text-sm">
+					You'll send
+        </span>
+        <Input
+					type="number"
+					placeholder="0.00"
+					value={sendAmount}
+					onChange={(e) =>
+						handleSendAmountChange(e.target.value)
+					}
+					className={cn(defaultInputStyle, "md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none")}
+				/>
+				<span className="text-gray-500 text-xs">
+					${sendAmount || "0.00"}
+				</span>
+			</div>
+			<div className="flex items-center gap-3">
+				<Button
+					onClick={() => setIsTokenModalOpen(true)}
+					className="flex items-center justify-center gap-2 rounded-3xl px-6 py-4"
+          >
+            {!sendToken && <span className="text-xs md:text-sm">Choose token</span>}
+            {sendToken
+            && (<>
+          <div
+						className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+						style={{
+							backgroundColor: sendToken.logoColor,
+						}}
+					>
+						{sendToken.symbol.slice(0, 2)}
+					</div>
+					<span className="text-white font-medium">
+						{sendToken.symbol}
+          </span>
+        </>)}
+					<ChevronDownIcon className="w-4 h-4 text-gray-400" />
+				</Button>
+			</div>
+		</div>
 	)
 
   const ReceiveComponent = () => (
@@ -112,7 +112,7 @@ function Home() {
 					onChange={(e) =>
 				handleSendAmountChange(e.target.value)
 					}
-					className={cn(defaultInputStyle, "md:text-4xl text-6xl border-none max-w-xs h-20 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none")}
+					className={cn(defaultInputStyle, "md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none")}
 				/>
 				<span className="text-gray-500 text-xs">
 				${receiveAmount || "0.00"}
@@ -123,7 +123,7 @@ function Home() {
 					onClick={() => setIsTokenModalOpen(true)}
 					className="flex items-center gap-2 rounded-3xl px-6 py-4"
 		    >
-		      {!receiveCurrency && <span>Choose token</span>}
+		      {!receiveCurrency && <span className="text-xs md:text-sm">Choose token</span>}
 		      {receiveCurrency && (<>
 		        <div
 								className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
@@ -143,7 +143,7 @@ function Home() {
   const FiatDestination = () => (
     <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
       <InputGroupAddon align="inline-start">
-        <Button onClick={() => setIsBankModalOpen(true)} className="flex items-center">Choose bank <ChevronDown className="size-4" /></Button>
+        <Button onClick={() => setIsBankModalOpen(true)} className="flex items-center text-xs md:text-sm">Choose bank <ChevronDown className="size-4" /></Button>
       </InputGroupAddon>
       <InputGroupInput
 				type="number"
@@ -157,7 +157,7 @@ function Home() {
 
   return (
     <>
-			<div className="w-full max-w-full">
+			<div className="w-full max-w-full px-4">
         <div className="grid gap-2 rounded-2xl p-2 shadow-2xl overflow-hidden bg-primary-foreground/5 mb-3">
           <div className="relative grid gap-1">
             <SendComponent />
