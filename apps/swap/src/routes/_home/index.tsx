@@ -1,29 +1,17 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	ArrowUpDownIcon,
-	SettingsIcon,
 	ChevronDownIcon,
-	ArrowRightIcon,
-	Loader2Icon,
-	HistoryIcon,
   ChevronDown,
 } from "lucide-react";
 import { TokenSelectorModal } from "@/components/token-selector-modal";
 import { BankSelectorModal } from "@/components/bank-selector-modal";
-import {
-	TOKENS,
-	FIAT_CURRENCIES,
-	BANKS,
-	type Token,
-	type Bank,
-} from "@/data/constants";
 import { Input } from "#/components/ui/input";
 import { Button } from "#/components/ui/button";
 import { cn } from "#/lib/utils";
 import { MiddleToggle } from "#/components/MiddleToggle";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
+import type { Bank, Token } from "#/data/constants";
 
 export const Route = createFileRoute("/_home/")({ component: Home });
 
@@ -67,7 +55,7 @@ function Home() {
   };
 
   const SendComponent = () => (
-    <div className="bg-muted/10 rounded-2xl p-4 flex gap-3 items-center justify-between">
+    <div className="bg-muted/10 rounded-xl p-4 flex gap-3 items-center justify-between">
 								<div className="grid items-center justify-start gap-3">
 									<span className="text-gray-400 text-sm">
 										You'll send
@@ -99,7 +87,7 @@ function Home() {
 												backgroundColor: sendToken.logoColor,
 											}}
 										>
-											{sendToken?.symbol.slice(0, 2)}
+											{sendToken.symbol.slice(0, 2)}
 										</div>
 										<span className="text-white font-medium">
 											{sendToken.symbol}
@@ -112,7 +100,7 @@ function Home() {
 	)
 
   const ReceiveComponent = () => (
-    <div className="bg-muted/10 rounded-2xl p-4 flex gap-3 items-center justify-between">
+    <div className="bg-muted/10 rounded-xl p-4 flex gap-3 items-center justify-between">
 			<div className="grid items-center justify-start gap-3">
 				<span className="text-gray-400 text-sm">
 					You'll receive
@@ -134,18 +122,18 @@ function Home() {
 				<Button
 					onClick={() => setIsTokenModalOpen(true)}
 					className="flex items-center gap-2 rounded-xl px-4 py-3"
-    >
-      {!receiveCurrency && <span>Choose token</span>}
-      {receiveCurrency && (<>
-        <div
-						className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-					>
-						{receiveCurrency?.symbol.slice(0, 2)}
-					</div>
-					<span className="text-white font-medium">
-						{receiveCurrency.symbol}
-        </span>
-      </>)}
+		    >
+		      {!receiveCurrency && <span>Choose token</span>}
+		      {receiveCurrency && (<>
+		        <div
+								className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+							>
+								{receiveCurrency.symbol.slice(0, 2)}
+							</div>
+							<span className="text-white font-medium">
+								{receiveCurrency.symbol}
+		        </span>
+		      </>)}
 					<ChevronDownIcon className="w-4 h-4 text-gray-400" />
 				</Button>
 			</div>
@@ -153,7 +141,7 @@ function Home() {
   )
 
   const FiatDestination = () => (
-    <InputGroup className="h-[55px] border border-input/30">
+    <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
       <InputGroupAddon align="inline-start">
         <Button onClick={() => setIsBankModalOpen(true)} className="flex items-center">Choose bank <ChevronDown className="size-4" /></Button>
       </InputGroupAddon>
@@ -162,7 +150,7 @@ function Home() {
 				onChange={(e) =>
   				console.log(e.target.value)
 				}
-				className={cn(defaultInputStyle, "border-l border-l-secondary/30 text-secondary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none")}
+				className={cn(defaultInputStyle, "border-l border-l-input/10 text-secondary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none selection:bg-accent selection:text-secondary")}
 			/>
     </InputGroup>
   )
@@ -170,7 +158,7 @@ function Home() {
   return (
     <>
 			<div className="w-full max-w-full">
-        <div className="grid gap-2 rounded-3xl p-2 shadow-2xl overflow-hidden bg-primary">
+        <div className="grid gap-2 rounded-2xl p-2 shadow-2xl overflow-hidden bg-primary mb-3">
           <div className="relative grid gap-1">
             <SendComponent />
             <MiddleToggle />

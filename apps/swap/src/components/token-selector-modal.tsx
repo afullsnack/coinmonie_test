@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PlusIcon, SearchIcon, XIcon } from "lucide-react";
+import { Check, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -73,11 +73,11 @@ export function TokenSelectorModal({
                   <ItemTitle>{network.name}</ItemTitle>
                   <ItemDescription className="text-xs">Blockchain network</ItemDescription>
                 </ItemContent>
-                <ItemActions>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <PlusIcon />
+                {(index === 1) && <ItemActions>
+                  <Button variant="default" size="icon" className="rounded-full">
+                    <Check />
                   </Button>
-                </ItemActions>
+                </ItemActions>}
               </Item>
             ))}
           </ItemGroup>
@@ -106,7 +106,7 @@ export function TokenSelectorModal({
                 </ItemMedia>
                 <ItemContent className="gap-1">
                   <ItemTitle>{token.symbol}</ItemTitle>
-									<ItemDescription className="text-xs">{token.name}.{token.address}</ItemDescription>
+									<ItemDescription className="text-xs flex items-center justify-start">{token.name}<div className="size-1 rounded-full bg-amber-200 mx-2" />{token.address}</ItemDescription>
                 </ItemContent>
               </Item>
             ))}
