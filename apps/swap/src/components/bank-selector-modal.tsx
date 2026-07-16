@@ -37,7 +37,7 @@ export function BankSelectorModal({
 	    <DialogContent className="overflow-hidden">
 	        <div className="flex flex-col items-start justify-start gap-3">
 	          <DialogHeader>
-	            <DialogTitle>Choose a bank</DialogTitle>
+	            <DialogTitle className="text-left">Choose a bank</DialogTitle>
 	            <DialogDescription>Select option from list or search</DialogDescription>
 	          </DialogHeader>
 	          <InputGroup>

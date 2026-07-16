@@ -5,12 +5,15 @@ import { Slot } from "radix-ui"
 import { cn } from "#/lib/utils.ts"
 import { Separator } from "#/components/ui/separator.tsx"
 
-function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
+function ItemGroup({ className, orientation = "vertical", ...props }: React.ComponentProps<"div"> & {orientation: "horizontal" | "vertical"}) {
   return (
     <div
       role="list"
       data-slot="item-group"
-      className={cn("group/item-group flex flex-col", className)}
+			className={cn("group/item-group flex", {
+				"flex-row": orientation === "horizontal",
+				"flex-col": orientation === "vertical"
+      }, className)}
       {...props}
     />
   )
