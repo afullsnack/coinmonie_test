@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronDownIcon, ChevronDown } from 'lucide-react'
+import { ChevronDownIcon, ChevronDown, Copy, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Input } from '#/components/ui/input'
@@ -15,6 +15,7 @@ import {
 import type { Bank, Token } from '#/data/constants'
 import type { Coin } from '#/lib/api-client'
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '#/components/ui/item'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -37,6 +38,8 @@ function Home() {
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
   const [isFindingQuote, setIsFindingQuote] = useState(false)
+  const [address, setAddress] = useState<string | null>(null)
+  const [isLoading, setLoading] = useState<boolean>(false)
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
@@ -53,13 +56,22 @@ function Home() {
     }
   }
 
-  const handleSwap = () => {
+  const handleSwap = async () => {
+    setLoading(true)
     if (!sendAmount || !selectedBank || !accountNumber) return
-    setIsFindingQuote(true)
-    setTimeout(() => {
-      setIsFindingQuote(false)
-    }, 2000)
+    await new Promise((r, _) =>
+      setTimeout(() => {
+        setLoading(false)
+        setAddress('0x'.padEnd(32, '0'))
+      }, 3_000),
+    )
+    // setIsFindingQuote(true)
+    // setTimeout(() => {
+    //   setIsFindingQuote(false)
+    // }, 2000)
   }
+
+  console.log(`Address`, { address })
 
   return (
     <>
@@ -73,42 +85,80 @@ function Home() {
               sendToken={sendToken}
             />
             <MiddleToggle />
-						<ReceiveComponent
-							handleSendAmountChange={handleSendAmountChange}
-							sendAmount={sendAmount}
-							receiveAmount={receiveAmount}
-							setIsTokenModalOpen={setIsTokenModalOpen}
-							receiveCurrency={receiveCurrency}
-						/>
+            <ReceiveComponent
+              handleSendAmountChange={handleSendAmountChange}
+              sendAmount={sendAmount}
+              receiveAmount={receiveAmount}
+              setIsTokenModalOpen={setIsTokenModalOpen}
+              receiveCurrency={receiveCurrency}
+            />
           </div>
 
-          <FiatDestination setIsBankModalOpen={setIsBankModalOpen} selectedbank={selectedBank} accountNumber={accountNumber} onAccountNumberChange={setAccountNumber} />
+          <FiatDestination
+            setIsBankModalOpen={setIsBankModalOpen}
+            selectedbank={selectedBank}
+            accountNumber={accountNumber}
+            onAccountNumberChange={setAccountNumber}
+          />
         </div>
 
-        <Button
-          onClick={handleSwap}
-          size="lg"
-          variant="secondary"
-          disabled={
-            !sendAmount || !selectedBank || !accountNumber
-          }
-          className="w-full max-h-18 h-full text-black font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
-        >
-          Choose asset to send
-        </Button>
+        {!address && (
+          <Button
+            onClick={handleSwap}
+            size="lg"
+            variant="secondary"
+            disabled={
+              !sendAmount || !selectedBank || !accountNumber || isLoading
+            }
+            className="w-full max-h-18 h-full text-black font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
+          >
+            Choose asset to send
+          </Button>
+        )}
+	      {address && (
+	        <div
+	          className="bg-primary text-secondary rounded-xl p-4 border border-gray-300 flex items-center justify-between"
+	        >
+	          <div className="">
+	            <h3 className='m-0! text-secondary text-sm font-semibold'>
+								Transfer {sendAmount}{sendToken?.symbol.toUpperCase()} to
+	            </h3>
+	            <span className='text-xs'>
+	              {address}
+	            </span>
+	          </div>
+	          <div className='flex items-center gap-1'>
+	            <Button
+	              variant="default"
+	              size="icon-xs"
+								className="bg-accent rounded-full"
+								onClick={() => navigator.clipboard.writeText(address)}
+	            >
+	              <Copy />
+	            </Button>
+	            <Button
+	              variant="default"
+	              size="icon-xs"
+	              className="bg-accent rounded-full"
+	            >
+	              <QrCode />
+	            </Button>
+	          </div>
+	        </div>
+	      )}
       </div>
 
       <TokenSelectorModal
         open={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-				onSelect={setSendToken}
+        onSelect={setSendToken}
         sendToken={sendToken}
       />
 
       <BankSelectorModal
         open={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
-				onSelect={setSelectedBank}
+        onSelect={setSelectedBank}
         selectedBank={selectedBank}
       />
     </>
@@ -135,7 +185,12 @@ const SendComponent = ({
             'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
           )}
         />
-        <span className="text-gray-500 text-xs">${(sendToken.current_price * sendAmount).toLocaleString('en-US') || '0.00'}</span>
+        <span className="text-gray-500 text-xs">
+          $
+          {((sendToken?.current_price || 1) * sendAmount).toLocaleString(
+            'en-US',
+          ) || '0.00'}
+        </span>
       </div>
       <div className="flex-1 items-center gap-3">
         <Button
@@ -147,8 +202,13 @@ const SendComponent = ({
           )}
           {sendToken && (
             <>
-              <img src={sendToken.image} className='m-0! size-6! rounded-full object-contain' />
-              <span className="text-white font-medium">{sendToken.symbol.toUpperCase()}</span>
+              <img
+                src={sendToken.image}
+                className="m-0! size-6! rounded-full object-contain"
+              />
+              <span className="text-white font-medium">
+                {sendToken.symbol.toUpperCase()}
+              </span>
             </>
           )}
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
@@ -162,8 +222,8 @@ const ReceiveComponent = ({
   handleSendAmountChange,
   sendAmount,
   receiveAmount,
-	setIsTokenModalOpen,
-	sendToken,
+  setIsTokenModalOpen,
+  sendToken,
   receiveCurrency,
 }: any) => {
   return (
@@ -173,8 +233,8 @@ const ReceiveComponent = ({
         <Input
           type="text"
           placeholder="0.00"
-					value={receiveAmount}
-					disabled
+          value={receiveAmount}
+          disabled
           onChange={(e) => handleSendAmountChange(e.target.value)}
           className={cn(
             defaultInputStyle,
@@ -188,11 +248,14 @@ const ReceiveComponent = ({
       <div className="flex-1 items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-					className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
-					disabled
-				>
-					<img src="/nigeria.png" className='size-6 rounded-full object-contain' />
-					<span className="text-xs md:text-sm">NGN Naira</span>
+          className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
+          disabled
+        >
+          <img
+            src="/nigeria.png"
+            className="size-6 rounded-full object-contain"
+          />
+          <span className="text-xs md:text-sm">NGN Naira</span>
           {/*{!receiveCurrency && (
             <span className="text-xs md:text-sm">Choose token</span>
           )}
@@ -213,7 +276,12 @@ const ReceiveComponent = ({
   )
 }
 
-const FiatDestination = ({ setIsBankModalOpen, selectedbank, accountNumber, onAccountNumberChange }: any) => {
+const FiatDestination = ({
+  setIsBankModalOpen,
+  selectedbank,
+  accountNumber,
+  onAccountNumberChange,
+}: any) => {
   return (
     <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
       <InputGroupAddon align="inline-start">
@@ -221,12 +289,13 @@ const FiatDestination = ({ setIsBankModalOpen, selectedbank, accountNumber, onAc
           onClick={() => setIsBankModalOpen(true)}
           className="flex items-center text-xs md:text-sm"
         >
-          {selectedbank? selectedbank?.name : 'Choose bank'} <ChevronDown className="size-4" />
+          {selectedbank ? selectedbank?.name : 'Choose bank'}{' '}
+          <ChevronDown className="size-4" />
         </Button>
       </InputGroupAddon>
       <InputGroupInput
         type="number"
-				value={accountNumber}
+        value={accountNumber}
         onChange={(e) => onAccountNumberChange(e.target.value)}
         className={cn(
           defaultInputStyle,

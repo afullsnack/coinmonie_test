@@ -192,7 +192,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-gray-900);
+  background-color: var(--color-primary);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
