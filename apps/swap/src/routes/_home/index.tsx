@@ -40,7 +40,7 @@ function Home() {
     setSendAmount(value)
     if (value && !Number.isNaN(Number.parseFloat(value))) {
       const amount = Number.parseFloat(value)
-      const received = amount * receiveCurrency.rate
+      const received = amount * 1380
       setReceiveAmount(
         received.toLocaleString('en-US', {
           maximumFractionDigits: 2,
@@ -136,7 +136,7 @@ const SendComponent = ({
       <div className="flex items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-3xl px-6 py-4"
+          className="flex items-center justify-between gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
         >
           {!sendToken && (
             <span className="text-xs md:text-sm">Choose token</span>
@@ -173,9 +173,10 @@ const ReceiveComponent = ({
       <div className="grid items-center justify-start gap-3">
         <span className="text-gray-400 text-sm">You'll receive</span>
         <Input
-          type="number"
+          type="text"
           placeholder="0.00"
-          value={sendAmount}
+					value={receiveAmount}
+					disabled
           onChange={(e) => handleSendAmountChange(e.target.value)}
           className={cn(
             defaultInputStyle,
@@ -183,15 +184,18 @@ const ReceiveComponent = ({
           )}
         />
         <span className="text-gray-500 text-xs">
-          ${receiveAmount || '0.00'}
+          NGN{receiveAmount || '0.00'}
         </span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex-1 items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center gap-2 rounded-3xl px-6 py-4"
-        >
-          {!receiveCurrency && (
+					className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
+					disabled
+				>
+					<img src="/nigeria.png" className='size-6 rounded-full object-contain' />
+					<span className="text-xs md:text-sm">NGN Naira</span>
+          {/*{!receiveCurrency && (
             <span className="text-xs md:text-sm">Choose token</span>
           )}
           {receiveCurrency && (
@@ -203,7 +207,7 @@ const ReceiveComponent = ({
                 {receiveCurrency.symbol}
               </span>
             </>
-          )}
+          )}*/}
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
         </Button>
       </div>

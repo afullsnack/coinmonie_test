@@ -38,20 +38,30 @@ export function TokenSelectorModal({
   onClose,
   onSelect,
 }: TokenSelectorModalProps) {
-  const [search, setSearch] = useState('')
-  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
+  const [searchNetwork, setSearchNetwork] = useState('')
+  const [searchToken, setSearchToken] = useState('')
+  const [selectedToken, setSelectedToken] = useState<string | null>(null)
 	const isMobile = useMediaQuery('(max-width: 768px)')
 
 	const tokens = useQuery(tokenQueryOptions)
 
-  const filteredTokens = TOKENS.filter((token) => {
+  const filteredNetworks = NETWORKS.filter((network) => {
     const matchesSearch =
-      token.name.toLowerCase().includes(search.toLowerCase()) ||
-      token.symbol.toLowerCase().includes(search.toLowerCase())
-    const matchesNetwork = selectedNetwork
-      ? token.network === selectedNetwork
-      : true
-    return matchesSearch && matchesNetwork
+      network.name.toLowerCase().includes(searchNetwork.toLowerCase())
+    // const matchesNetwork = selectedNetwork
+    //   ? network.network === selectedNetwork
+    //   : true
+    return matchesSearch
+  })
+  const filteredTokens = (tokens.data || []).filter((token) => {
+    const matchesSearch =
+      token.name.toLowerCase().includes(searchToken.toLowerCase()) ||
+      token.symbol.toLowerCase().includes(searchToken.toLowerCase())
+    // const matchesNetwork = selectedNetwork
+    //   ? token.network === selectedNetwork
+    //   : true
+		return matchesSearch
+			// && matchesNetwork
   })
 
   if (!open) return null
@@ -69,24 +79,25 @@ export function TokenSelectorModal({
       <DialogContent className="sm:max-w-4xl max-h-[70dvh] h-full p-0! overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 justify-start w-full">
           <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4">
-            <DialogHeader>
+            <DialogHeader className='px-4 w-full'>
               <DialogTitle className="text-left">Select network</DialogTitle>
+	            <InputGroup>
+	              <InputGroupInput value={searchNetwork} onChange={(e) => setSearchNetwork(e.target.value)} placeholder="Search network" />
+	              <InputGroupAddon>
+	                <SearchIcon />
+	              </InputGroupAddon>
+	            </InputGroup>
             </DialogHeader>
-            <InputGroup>
-              <InputGroupInput placeholder="Search network" />
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-            </InputGroup>
             <ItemGroup
-              className="w-full overflow-auto gap-2 max-h-[60dvh]"
+              className="overflow-auto gap-2 max-h-[60dvh] items-center justify-start"
               orientation={isMobile ? 'horizontal' : 'vertical'}
             >
-              {NETWORKS.map((network, index) => (
+              {filteredNetworks.map((network, index) => (
                 <Item
                   key={network.id}
                   variant="outline"
-                  className="bg-secondary! min-w-2xs sm:max-w-sm sm:w-full"
+									className="bg-secondary! min-w-2xs sm:max-w-sm sm:w-full"
+                  size="sm"
                 >
                   <ItemMedia>
                     <Avatar>
@@ -123,7 +134,7 @@ export function TokenSelectorModal({
               </DialogDescription>
             </DialogHeader>
             <InputGroup>
-              <InputGroupInput placeholder="Search by name, symbol or address" />
+              <InputGroupInput value={searchToken} onChange={(e) => setSearchToken(e.target.value)} placeholder="Search by name, symbol or address" />
               <InputGroupAddon>
                 <SearchIcon />
               </InputGroupAddon>
@@ -132,11 +143,11 @@ export function TokenSelectorModal({
               className="w-full gap-2 max-h-[60dvh]"
               orientation="vertical"
             >
-              {tokens.data && tokens.data.map((token, index) => (
+              {tokens.data && filteredTokens.map((token, index) => (
                 <Item
                   key={token.id}
                   variant="outline"
-                  className="bg-secondary!"
+                  className="bg-muted"
                 >
                   <ItemMedia>
                     <Avatar>
@@ -148,8 +159,8 @@ export function TokenSelectorModal({
                     <ItemTitle className="min-w-sm">{token.symbol.toUpperCase()}</ItemTitle>
                     <ItemDescription className="text-xs flex flex-col sm:flex-row sm:items-center justify-start">
                       {token.name}
-                      <div className="size-1 rounded-full bg-amber-200 mx-2" />
-                      {token.market_cap}
+                      {/*<div className="size-1 rounded-full bg-amber-200 mx-2" />
+                      {token.symbol}*/}
                     </ItemDescription>
                   </ItemContent>
                 </Item>
