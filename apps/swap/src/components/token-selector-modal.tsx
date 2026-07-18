@@ -25,22 +25,24 @@ import { Button } from './ui/button'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { useQuery } from '@tanstack/react-query'
 import { tokenQueryOptions } from '#/lib/api-client'
+import type {Coin} from "#/lib/api-client"
 
 interface TokenSelectorModalProps {
   open: boolean
   onClose: () => void
-  onSelect: (token: Token) => void
-  children?: React.ReactNode
+  onSelect: (token: Coin) => void
+	children?: React.ReactNode
+  sendToken: Coin | null
 }
 
 export function TokenSelectorModal({
   open,
   onClose,
-  onSelect,
+	onSelect,
+  sendToken,
 }: TokenSelectorModalProps) {
   const [searchNetwork, setSearchNetwork] = useState('')
   const [searchToken, setSearchToken] = useState('')
-  const [selectedToken, setSelectedToken] = useState<string | null>(null)
 	const isMobile = useMediaQuery('(max-width: 768px)')
 
 	const tokens = useQuery(tokenQueryOptions)
@@ -147,7 +149,11 @@ export function TokenSelectorModal({
                 <Item
                   key={token.id}
                   variant="outline"
-                  className="bg-muted"
+									className="bg-muted"
+									onClick={() => {
+										console.log(`Set token clicked: `, { token })
+										onSelect(token)
+									}}
                 >
                   <ItemMedia>
                     <Avatar>
@@ -159,10 +165,13 @@ export function TokenSelectorModal({
                     <ItemTitle className="min-w-sm">{token.symbol.toUpperCase()}</ItemTitle>
                     <ItemDescription className="text-xs flex flex-col sm:flex-row sm:items-center justify-start">
                       {token.name}
-                      {/*<div className="size-1 rounded-full bg-amber-200 mx-2" />
-                      {token.symbol}*/}
                     </ItemDescription>
-                  </ItemContent>
+									</ItemContent>
+									{sendToken && sendToken.id === token.id && <ItemActions>
+										<Button variant="default" size="icon-sm" className='bg-accent rounded-full'>
+											<Check />
+										</Button>
+                  </ItemActions>}
                 </Item>
               ))}
             </ItemGroup>

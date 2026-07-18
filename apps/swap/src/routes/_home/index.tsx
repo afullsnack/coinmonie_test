@@ -13,6 +13,8 @@ import {
   InputGroupInput,
 } from '#/components/ui/input-group'
 import type { Bank, Token } from '#/data/constants'
+import type { Coin } from '#/lib/api-client'
+import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -21,7 +23,7 @@ const BASE_ASSET = 'NGN'
 const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
-  const [sendToken, setSendToken] = useState<Token | null>(null)
+  const [sendToken, setSendToken] = useState<Coin | null>(null)
   const [receiveCurrency, setReceiveCurrency] = useState<{
     id: string
     symbol: string
@@ -40,7 +42,7 @@ function Home() {
     setSendAmount(value)
     if (value && !Number.isNaN(Number.parseFloat(value))) {
       const amount = Number.parseFloat(value)
-      const received = amount * 1380
+      const received = (sendToken?.current_price || 1) * amount * 1380
       setReceiveAmount(
         received.toLocaleString('en-US', {
           maximumFractionDigits: 2,
@@ -80,7 +82,7 @@ function Home() {
 						/>
           </div>
 
-          <FiatDestination setIsBankModalOpen={setIsBankModalOpen} />
+          <FiatDestination setIsBankModalOpen={setIsBankModalOpen} selectedbank={selectedBank} accountNumber={accountNumber} onAccountNumberChange={setAccountNumber} />
         </div>
 
         <Button
@@ -88,7 +90,7 @@ function Home() {
           size="lg"
           variant="secondary"
           disabled={
-            !sendAmount || !selectedBank || !accountNumber || isFindingQuote
+            !sendAmount || !selectedBank || !accountNumber
           }
           className="w-full max-h-18 h-full text-black font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
         >
@@ -99,13 +101,15 @@ function Home() {
       <TokenSelectorModal
         open={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-        onSelect={setSendToken}
+				onSelect={setSendToken}
+        sendToken={sendToken}
       />
 
       <BankSelectorModal
         open={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
-        onSelect={setSelectedBank}
+				onSelect={setSelectedBank}
+        selectedBank={selectedBank}
       />
     </>
   )
@@ -131,27 +135,20 @@ const SendComponent = ({
             'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
           )}
         />
-        <span className="text-gray-500 text-xs">${sendAmount || '0.00'}</span>
+        <span className="text-gray-500 text-xs">${(sendToken.current_price * sendAmount).toLocaleString('en-US') || '0.00'}</span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex-1 items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center justify-between gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
+          className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
         >
           {!sendToken && (
             <span className="text-xs md:text-sm">Choose token</span>
           )}
           {sendToken && (
             <>
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                style={{
-                  backgroundColor: sendToken.logoColor,
-                }}
-              >
-                {sendToken.symbol.slice(0, 2)}
-              </div>
-              <span className="text-white font-medium">{sendToken.symbol}</span>
+              <img src={sendToken.image} className='m-0! size-6! rounded-full object-contain' />
+              <span className="text-white font-medium">{sendToken.symbol.toUpperCase()}</span>
             </>
           )}
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
@@ -165,7 +162,8 @@ const ReceiveComponent = ({
   handleSendAmountChange,
   sendAmount,
   receiveAmount,
-  setIsTokenModalOpen,
+	setIsTokenModalOpen,
+	sendToken,
   receiveCurrency,
 }: any) => {
   return (
@@ -215,7 +213,7 @@ const ReceiveComponent = ({
   )
 }
 
-const FiatDestination = ({ setIsBankModalOpen }: any) => {
+const FiatDestination = ({ setIsBankModalOpen, selectedbank, accountNumber, onAccountNumberChange }: any) => {
   return (
     <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
       <InputGroupAddon align="inline-start">
@@ -223,12 +221,13 @@ const FiatDestination = ({ setIsBankModalOpen }: any) => {
           onClick={() => setIsBankModalOpen(true)}
           className="flex items-center text-xs md:text-sm"
         >
-          Choose bank <ChevronDown className="size-4" />
+          {selectedbank? selectedbank?.name : 'Choose bank'} <ChevronDown className="size-4" />
         </Button>
       </InputGroupAddon>
       <InputGroupInput
         type="number"
-        onChange={(e) => console.log(e.target.value)}
+				value={accountNumber}
+        onChange={(e) => onAccountNumberChange(e.target.value)}
         className={cn(
           defaultInputStyle,
           'border-l border-l-input/10 text-secondary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none selection:bg-accent selection:text-secondary',

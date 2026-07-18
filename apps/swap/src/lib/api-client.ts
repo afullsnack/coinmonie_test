@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { betterFetch } from "@better-fetch/fetch";
 
-type Coin = {
+export type Coin = {
   id: string;
   symbol: string;
   name: string;

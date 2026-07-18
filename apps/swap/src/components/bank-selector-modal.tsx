@@ -1,21 +1,24 @@
 import { useState } from "react";
-import { SearchIcon, XIcon } from "lucide-react";
+import { Check, SearchIcon, XIcon } from "lucide-react";
 import { BANKS, type Bank } from "@/data/constants";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "./ui/item";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "./ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
 
 interface BankSelectorModalProps {
 	open: boolean;
 	onClose: () => void;
 	onSelect: (bank: Bank) => void;
+	selectedBank: Bank | null
 }
 
 export function BankSelectorModal({
 	open,
 	onClose,
 	onSelect,
+	selectedBank
 }: BankSelectorModalProps) {
 	const [search, setSearch] = useState("");
 
@@ -48,16 +51,24 @@ export function BankSelectorModal({
 	          </InputGroup>
 	          <ItemGroup className="w-full max-h-[60dvh] overflow-y-auto gap-2">
 	            {BANKS.map((bank, index) => (
-	              <Item key={bank.id} variant="outline" className="bg-secondary!">
+								<Item key={bank.id} variant="outline" className="bg-muted" onClick={() => {
+									console.log(`Bank list item cliked`, {bank})
+									onSelect(bank)
+								}}>
 	                <ItemMedia>
 	                  <Avatar>
 	                    <AvatarImage src={bank.url}/>
-	                    <AvatarFallback>{bank.logoInitial.charAt(0)}</AvatarFallback>
+	                    <AvatarFallback className="bg-secondary">{bank.logoInitial.charAt(0)}</AvatarFallback>
 	                  </Avatar>
 	                </ItemMedia>
 	                <ItemContent className="gap-1">
 	                  <ItemTitle>{bank.name}</ItemTitle>
-	                </ItemContent>
+									</ItemContent>
+									{(selectedBank?.id === bank.id) && <ItemActions>
+										<Button variant="default" size="icon-sm" className="bg-accent rounded-full">
+											<Check />
+										</Button>
+									</ItemActions>}
 	              </Item>
 	            ))}
 	          </ItemGroup>
