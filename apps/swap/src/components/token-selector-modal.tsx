@@ -78,7 +78,7 @@ export function TokenSelectorModal({
       <DialogTrigger>Open</DialogTrigger>
       <DialogContent className="sm:max-w-4xl max-h-[70dvh] h-full p-0! overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 justify-start w-full">
-          <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4">
+          <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4 w-full">
             <DialogHeader className='px-4 w-full'>
               <DialogTitle className="text-left">Select network</DialogTitle>
 	            <InputGroup>
@@ -89,7 +89,7 @@ export function TokenSelectorModal({
 	            </InputGroup>
             </DialogHeader>
             <ItemGroup
-              className="overflow-auto gap-2 max-h-[60dvh] items-center justify-start"
+              className="overflow-auto gap-2 max-h-[60dvh] items-center justify-start w-full px-4 overflow-x-auto"
               orientation={isMobile ? 'horizontal' : 'vertical'}
             >
               {filteredNetworks.map((network, index) => (
