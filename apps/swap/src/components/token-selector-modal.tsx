@@ -68,7 +68,7 @@ export function TokenSelectorModal({
       <DialogTrigger>Open</DialogTrigger>
       <DialogContent className="sm:max-w-4xl max-h-[70dvh] h-full p-0! overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 justify-start w-full">
-          <div className="flex flex-col items-start justify-start gap-3 bg-muted p-4">
+          <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4">
             <DialogHeader>
               <DialogTitle className="text-left">Select network</DialogTitle>
             </DialogHeader>
@@ -90,7 +90,7 @@ export function TokenSelectorModal({
                 >
                   <ItemMedia>
                     <Avatar>
-                      <AvatarImage src={network.url} />
+                      <AvatarImage src={network?.url} />
                       <AvatarFallback>{network.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </ItemMedia>

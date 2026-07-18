@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/_home/transactions")({
   component: Transactions,
 	loader: async () => {
-		const data = await import("../../../transfers.json", {})
+		const data = await import("../../../public/transfers.json", {})
 		return { transactions: data.default.transfers, account: data.default.account }
   }
 });
