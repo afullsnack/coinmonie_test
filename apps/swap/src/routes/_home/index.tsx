@@ -117,7 +117,7 @@ function Home() {
         )}
 	      {address && (
 	        <div
-	          className="bg-primary text-secondary rounded-xl p-4 border border-gray-300 flex items-center justify-between"
+	          className="bg-primary text-secondary rounded-xl p-4 border border-secondary/20 flex items-center justify-between"
 	        >
 	          <div className="">
 	            <h3 className='m-0! text-secondary text-sm font-semibold'>
