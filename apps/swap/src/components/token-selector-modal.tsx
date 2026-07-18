@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
+import { Check, SearchIcon } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { TOKENS, NETWORKS, type Token } from '@/data/constants'
+import { TOKENS, NETWORKS } from '@/data/constants'
+import type {Token} from "@/data/constants"
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
 import {
   Item,
@@ -103,10 +104,10 @@ export function TokenSelectorModal({
                     <ItemActions>
                       <Button
                         variant="default"
-                        size="icon"
+                        size="icon-xs"
                         className="rounded-full"
                       >
-                        <Check />
+                        <Check className='size-4' />
                       </Button>
                     </ItemActions>
                   )}
