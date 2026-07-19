@@ -54,6 +54,7 @@ export function BankSelectorModal({
 								<Item key={bank.id} variant="outline" className="bg-muted" onClick={() => {
 									console.log(`Bank list item cliked`, {bank})
 									onSelect(bank)
+									onClose()
 								}}>
 	                <ItemMedia>
 	                  <Avatar>

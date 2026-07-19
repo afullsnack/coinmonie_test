@@ -169,6 +169,7 @@ export function TokenSelectorModal({
 									onClick={() => {
 										console.log(`Set token clicked: `, { token })
 										onSelect(token)
+										onClose()
 									}}
                 >
                   <ItemMedia>
