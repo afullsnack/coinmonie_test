@@ -26,6 +26,7 @@ import { useMediaQuery } from '#/hooks/use-media-query'
 import { useQuery } from '@tanstack/react-query'
 import { tokenQueryOptions } from '#/lib/api-client'
 import type {Coin} from "#/lib/api-client"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 interface TokenSelectorModalProps {
   open: boolean
@@ -80,17 +81,32 @@ export function TokenSelectorModal({
       <DialogTrigger>Open</DialogTrigger>
       <DialogContent className="sm:max-w-4xl max-h-[70dvh] h-full p-0! overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 justify-start w-full">
-          <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4 w-full">
-            <DialogHeader className='px-4 w-full'>
+          <div className="flex flex-col items-start justify-start gap-3 bg-muted py-4 px-4 sm:px-0 w-full">
+            <DialogHeader className='px-0 sm:px-4 w-full'>
               <DialogTitle className="text-left">Select network</DialogTitle>
-	            <InputGroup>
+	            {!isMobile && (<InputGroup>
 	              <InputGroupInput value={searchNetwork} onChange={(e) => setSearchNetwork(e.target.value)} placeholder="Search network" />
 	              <InputGroupAddon>
 	                <SearchIcon />
 	              </InputGroupAddon>
-	            </InputGroup>
-            </DialogHeader>
-            <ItemGroup
+	            </InputGroup>)}
+						</DialogHeader>
+						{isMobile && (
+							<Select defaultValue={filteredNetworks[0].id}>
+								<SelectTrigger className='w-full'>
+									<SelectValue
+										placeholder="Select network"
+										className='max-w-lg w-full'
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{filteredNetworks.map((network) => (
+										<SelectItem value={network.id}>{network.name}</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+            )}
+            {!isMobile && <ItemGroup
               className="overflow-auto gap-2 max-h-[60dvh] items-center justify-start w-full px-4 overflow-x-auto"
               orientation={isMobile ? 'horizontal' : 'vertical'}
             >
@@ -126,7 +142,7 @@ export function TokenSelectorModal({
                   )}
                 </Item>
               ))}
-            </ItemGroup>
+            </ItemGroup>}
           </div>
           <div className="md:col-span-2 w-full overflow-y-auto overflow-x-hidden flex flex-col items-start justify-start gap-3 p-4">
             <DialogHeader>
