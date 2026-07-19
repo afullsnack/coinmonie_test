@@ -161,11 +161,12 @@ export function TokenSelectorModal({
               className="w-full gap-2 max-h-[60dvh]"
               orientation="vertical"
             >
-              {tokens.data && filteredTokens.map((token, index) => (
+              {tokens.data && filteredTokens.map((token) => (
                 <Item
-                  key={token.id}
+									key={token.id}
+                  size="sm"
                   variant="outline"
-									className="bg-muted"
+									className="bg-muted w-full p-4 flex flex-row items-center justify-start flex-nowrap"
 									onClick={() => {
 										console.log(`Set token clicked: `, { token })
 										onSelect(token)
@@ -178,18 +179,20 @@ export function TokenSelectorModal({
                       <AvatarFallback>{token.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </ItemMedia>
-                  <ItemContent className="gap-1">
+                  <ItemContent className="flex-0! max-w-xs!">
                     <ItemTitle className="min-w-sm">{token.symbol.toUpperCase()}</ItemTitle>
                     <ItemDescription className="text-xs flex flex-col sm:flex-row sm:items-center justify-start">
                       {token.name}
                     </ItemDescription>
 									</ItemContent>
-									{sendToken && sendToken.id === token.id && <ItemActions>
-										<Button variant="default" size="icon-sm" className='bg-accent rounded-full'>
-											<Check />
-										</Button>
-                  </ItemActions>}
-                </Item>
+									{sendToken && sendToken.id === token.id && (
+										<ItemActions className='flex-1'>
+											<Button variant="default" size="icon-sm" className='bg-accent rounded-full'>
+												<Check />
+											</Button>
+	                  </ItemActions>
+									)}
+								</Item>
               ))}
             </ItemGroup>
           </div>
