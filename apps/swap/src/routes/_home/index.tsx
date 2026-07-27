@@ -7,7 +7,7 @@ import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type { Asset, Bank, Network } from '#/data/constants'
-import { offrampRateMutationOptions, type Coin } from '#/lib/api-client'
+import { offrampRateMutationOptions } from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
@@ -40,8 +40,10 @@ function Home() {
 	const rate = useMutation(offrampRateMutationOptions)
 
 	useEffect(() => {
-		rate.mutate({asset: "base:usdc"})
-	}, [])
+		if (sendToken) {
+			rate.mutate({asset: sendToken.id})
+		}
+	}, [sendToken])
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)

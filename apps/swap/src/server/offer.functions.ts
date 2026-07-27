@@ -86,7 +86,10 @@ export const assetList = createServerFn({method: "GET"})
 				throw error;
 			}
 
-			const dir = env.NODE_ENV === "development"? `./public/assets/tokens` : `${process.cwd()}/assets/tokens`;
+			const dir =
+				// env.NODE_ENV === "development" ?
+				`./public/assets/tokens`
+				// : `${process.cwd()}/assets/tokens`;
 			const files = await fs.readdir(dir)
 				.catch((error: any) => {
 					console.log(`Error reading files`, { error })
@@ -191,7 +194,7 @@ export const getRate = createServerFn()
 				message: string;
 				timestamp: string;
 				data: { rate: number; };
-			}>(`${SWITCH_API_URL}/offramp/rates`, {
+			}>(`${SWITCH_API_URL}/offramp/rate`, {
 				method: "POST",
 				headers: {
 					'x-service-key': env.SWITCH_API_KEY,
