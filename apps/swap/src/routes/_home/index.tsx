@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Copy, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
@@ -7,10 +7,11 @@ import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type { Asset, Bank, Network } from '#/data/constants'
-import type { Coin } from '#/lib/api-client'
+import { offrampRateMutationOptions, type Coin } from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
+import { useMutation } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -35,13 +36,18 @@ function Home() {
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
   const [isFindingQuote, setIsFindingQuote] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
-  const [isLoading, setLoading] = useState<boolean>(false)
+	const [isLoading, setLoading] = useState<boolean>(false)
+	const rate = useMutation(offrampRateMutationOptions)
+
+	useEffect(() => {
+		rate.mutate({asset: "base:usdc"})
+	}, [])
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
     if (value && !Number.isNaN(Number.parseFloat(value))) {
       const amount = Number.parseFloat(value)
-      const received = (sendToken?.current_price || 1) * amount * 1380
+      const received = (1) * amount * (rate.data?.rate ?? 1)
       setReceiveAmount(
         received.toLocaleString('en-US', {
           maximumFractionDigits: 2,
@@ -116,7 +122,7 @@ function Home() {
             <div className="">
               <h3 className="m-0! text-secondary text-sm font-semibold">
                 Transfer {sendAmount}
-                {sendToken?.symbol.toUpperCase()} to
+                {sendToken?.code.toUpperCase()} to
               </h3>
               <span className="text-xs">{address}</span>
             </div>

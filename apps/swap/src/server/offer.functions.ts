@@ -2,8 +2,7 @@ import { env } from "#/env";
 import { betterFetch } from "@better-fetch/fetch";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import path from "path"
-import fs from "fs/promises"
+import fs from "node:fs/promises"
 
 const SWITCH_API_URL = `https://api.onswitch.xyz`
 
