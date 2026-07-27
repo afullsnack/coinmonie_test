@@ -1,30 +1,26 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronDownIcon, ChevronDown, Copy, QrCode } from 'lucide-react'
+import { Copy, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
-import { Input } from '#/components/ui/input'
 import { Button } from '#/components/ui/button'
-import { cn } from '#/lib/utils'
 import { MiddleToggle } from '#/components/MiddleToggle'
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '#/components/ui/input-group'
-import type { Bank, Token } from '#/data/constants'
+
+import type { Asset, Bank, Network } from '#/data/constants'
 import type { Coin } from '#/lib/api-client'
-import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
-import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '#/components/ui/item'
+import SendComponent from './-components/SendAsset'
+import ReceiveComponent from './-components/ReceiveAsset'
+import FiatDestination from './-components/FiatDestination'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
-const defaultInputStyle = `outline-0 focus-visible:ring-0 p-2 focus:bg-transparent dark:bg-transparent h-auto`
+
 const BASE_ASSET = 'NGN'
 const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
-  const [sendToken, setSendToken] = useState<Coin | null>(null)
+  const [sendToken, setSendToken] = useState<Asset | null>(null)
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [receiveCurrency, setReceiveCurrency] = useState<{
     id: string
     symbol: string
@@ -110,49 +106,48 @@ function Home() {
             disabled={
               !sendAmount || !selectedBank || !accountNumber || isLoading
             }
-            className="w-full max-h-18 h-full text-black font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
+            className="w-full max-h-18 h-full bg-accent text-secondary font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
           >
             Choose asset to send
           </Button>
         )}
-	      {address && (
-	        <div
-	          className="bg-primary text-secondary rounded-xl p-4 border border-secondary/20 flex items-center justify-between"
-	        >
-	          <div className="">
-	            <h3 className='m-0! text-secondary text-sm font-semibold'>
-								Transfer {sendAmount}{sendToken?.symbol.toUpperCase()} to
-	            </h3>
-	            <span className='text-xs'>
-	              {address}
-	            </span>
-	          </div>
-	          <div className='flex items-center gap-1'>
-	            <Button
-	              variant="default"
-	              size="icon-xs"
-								className="bg-accent rounded-full"
-								onClick={() => navigator.clipboard.writeText(address)}
-	            >
-	              <Copy />
-	            </Button>
-	            <Button
-	              variant="default"
-	              size="icon-xs"
-	              className="bg-accent rounded-full"
-	            >
-	              <QrCode />
-	            </Button>
-	          </div>
-	        </div>
-	      )}
+        {address && (
+          <div className="bg-primary text-secondary rounded-xl p-4 border border-secondary/20 flex items-center justify-between">
+            <div className="">
+              <h3 className="m-0! text-secondary text-sm font-semibold">
+                Transfer {sendAmount}
+                {sendToken?.symbol.toUpperCase()} to
+              </h3>
+              <span className="text-xs">{address}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="default"
+                size="icon-xs"
+                className="bg-accent rounded-full"
+                onClick={() => navigator.clipboard.writeText(address)}
+              >
+                <Copy />
+              </Button>
+              <Button
+                variant="default"
+                size="icon-xs"
+                className="bg-accent rounded-full"
+              >
+                <QrCode />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <TokenSelectorModal
         open={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-        onSelect={setSendToken}
-        sendToken={sendToken}
+				onSelect={setSendToken}
+        onNetworkSelect={setSelectedNetwork}
+				sendToken={sendToken}
+				selectedNetwork={selectedNetwork}
       />
 
       <BankSelectorModal
@@ -162,146 +157,5 @@ function Home() {
         selectedBank={selectedBank}
       />
     </>
-  )
-}
-
-const SendComponent = ({
-  handleSendAmountChange,
-  sendAmount,
-  setIsTokenModalOpen,
-  sendToken,
-}: any) => {
-  return (
-    <div className="bg-muted/10 rounded-xl p-4 flex gap-3 items-center justify-between">
-      <div className="grid items-center justify-start gap-3">
-        <span className="text-gray-400 text-sm">You'll send</span>
-        <Input
-          type="number"
-          placeholder="0.00"
-          value={sendAmount}
-          onChange={(e) => handleSendAmountChange(e.target.value)}
-          className={cn(
-            defaultInputStyle,
-            'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
-          )}
-        />
-        <span className="text-gray-500 text-xs">
-          $
-          {((sendToken?.current_price || 1) * sendAmount).toLocaleString(
-            'en-US',
-          ) || '0.00'}
-        </span>
-      </div>
-      <div className="flex-1 items-center gap-3">
-        <Button
-          onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
-        >
-          {!sendToken && (
-            <span className="text-xs md:text-sm">Choose token</span>
-          )}
-          {sendToken && (
-            <>
-              <img
-                src={sendToken.image}
-                className="m-0! size-6! rounded-full object-contain"
-              />
-              <span className="text-white font-medium">
-                {sendToken.symbol.toUpperCase()}
-              </span>
-            </>
-          )}
-          <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-const ReceiveComponent = ({
-  handleSendAmountChange,
-  sendAmount,
-  receiveAmount,
-  setIsTokenModalOpen,
-  sendToken,
-  receiveCurrency,
-}: any) => {
-  return (
-    <div className="bg-muted/10 rounded-xl p-4 flex gap-3 items-center justify-between">
-      <div className="grid items-center justify-start gap-3">
-        <span className="text-gray-400 text-sm">You'll receive</span>
-        <Input
-          type="text"
-          placeholder="0.00"
-          value={receiveAmount}
-          disabled
-          onChange={(e) => handleSendAmountChange(e.target.value)}
-          className={cn(
-            defaultInputStyle,
-            'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-white font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
-          )}
-        />
-        <span className="text-gray-500 text-xs">
-          NGN{receiveAmount || '0.00'}
-        </span>
-      </div>
-      <div className="flex-1 items-center gap-3">
-        <Button
-          onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4"
-          disabled
-        >
-          <img
-            src="/nigeria.png"
-            className="size-6 rounded-full object-contain"
-          />
-          <span className="text-xs md:text-sm">NGN Naira</span>
-          {/*{!receiveCurrency && (
-            <span className="text-xs md:text-sm">Choose token</span>
-          )}
-          {receiveCurrency && (
-            <>
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                {receiveCurrency.symbol.slice(0, 2)}
-              </div>
-              <span className="text-white font-medium">
-                {receiveCurrency.symbol}
-              </span>
-            </>
-          )}*/}
-          <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-const FiatDestination = ({
-  setIsBankModalOpen,
-  selectedbank,
-  accountNumber,
-  onAccountNumberChange,
-}: any) => {
-  return (
-    <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
-      <InputGroupAddon align="inline-start">
-        <Button
-          onClick={() => setIsBankModalOpen(true)}
-          className="flex items-center text-xs md:text-sm"
-        >
-          {selectedbank ? selectedbank?.name : 'Choose bank'}{' '}
-          <ChevronDown className="size-4" />
-        </Button>
-      </InputGroupAddon>
-      <InputGroupInput
-        type="number"
-        value={accountNumber}
-        onChange={(e) => onAccountNumberChange(e.target.value)}
-        className={cn(
-          defaultInputStyle,
-          'border-l border-l-input/10 text-secondary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none selection:bg-accent selection:text-secondary',
-        )}
-      />
-    </InputGroup>
   )
 }

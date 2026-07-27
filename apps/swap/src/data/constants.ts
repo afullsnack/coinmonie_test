@@ -8,10 +8,29 @@ export interface Token {
 }
 
 export interface Bank {
+	id: number;
+	name: string;
+	code: string;
+	category: string;
+	logo: string;
+}
+
+export type Network = { id: number; name: string; type: string }
+export type Asset = {
 	id: string;
 	name: string;
-	country: string;
-	logoInitial: string;
+	code: string;
+	decimals: number;
+	address: string;
+	blockchain: {
+		id: number;
+		name: string;
+		type?: string;
+	};
+	offramp_supported: boolean;
+	onramp_supported: boolean;
+	swap_supported: boolean;
+	wallet_supported: boolean;
 }
 
 export const NETWORKS = [
@@ -42,17 +61,4 @@ export const FIAT_CURRENCIES = [
 	{ id: "zar", symbol: "ZAR", name: "South African Rand", rate: 18.25 },
 	{ id: "eur", symbol: "EUR", name: "Euro", rate: 0.92 },
 	{ id: "gbp", symbol: "GBP", name: "British Pound", rate: 0.79 },
-];
-
-export const BANKS: Bank[] = [
-	{ id: "opay", name: "OPay", country: "Nigeria", logoInitial: "O" },
-	{ id: "kuda", name: "Kuda Bank", country: "Nigeria", logoInitial: "K" },
-	{ id: "moniepoint", name: "Moniepoint", country: "Nigeria", logoInitial: "M" },
-	{ id: "palmplay", name: "PalmPay", country: "Nigeria", logoInitial: "P" },
-	{ id: "gtbank", name: "GTBank", country: "Nigeria", logoInitial: "G" },
-	{ id: "access", name: "Access Bank", country: "Nigeria", logoInitial: "A" },
-	{ id: "stanbic", name: "Stanbic IBTC", country: "Nigeria", logoInitial: "S" },
-	{ id: "zenith", name: "Zenith Bank", country: "Nigeria", logoInitial: "Z" },
-	{ id: "firstbank", name: "First Bank", country: "Nigeria", logoInitial: "F" },
-	{ id: "uba", name: "UBA", country: "Nigeria", logoInitial: "U" },
 ];

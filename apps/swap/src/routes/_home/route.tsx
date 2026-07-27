@@ -14,33 +14,33 @@ function RouteComponent() {
   console.log(`Using router state to match home`, { matchHome })
 
   return (
-    <Main className="min-h-screen flex flex-col bg-primary selection:bg-accent selection:text-secondary">
-      <Section className='p-1!'>
+    <Main className="min-h-screen flex flex-col bg-secondary selection:bg-accent selection:text-secondary">
+      <Section className='p-0!'>
         <Container className='max-w-lg p-0!'>
-     			<header className="flex items-center justify-between">
+     			<header className="flex items-center justify-between px-4">
     				<Link className="flex items-center gap-2" to='/'>
-     					<img src='/coinmonie_full_logo_rgb_white_transparent.png' className='object-contain h-12' />
+     					<img src='/coinmonie_full_logo_primary.png' className='object-contain h-12' />
     				</Link>
             <Button
               size="icon-lg"
               variant="ghost"
-              className=""
+              className="hover:bg-secondary"
               asChild
             >
               <Link to='/transactions'>
-       					<Clock className="size-6 text-gray-400" />
+       					<Clock className="size-6 text-accent" />
               </Link>
     				</Button>
           </header>
       </Container>
     </Section>
     <Section className='p-0!'>
-        <Container className={cn(
-          'p-0! flex items-center justify-center max-w-6xl',
-          {
-            "max-w-lg": matchHome
-          }
-        )}>
+      <Container className={cn(
+        'p-0! flex items-center justify-center max-w-6xl',
+        {
+          "max-w-lg": matchHome
+        }
+      )}>
         <Outlet />
       </Container>
     </Section>

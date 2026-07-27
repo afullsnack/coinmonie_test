@@ -1,5 +1,6 @@
-import { queryOptions } from "@tanstack/react-query";
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { betterFetch } from "@better-fetch/fetch";
+import { assetList, bankLookup, getQuote, getRate } from "#/server/offer.functions";
 
 export type Coin = {
   id: string;
@@ -37,7 +38,7 @@ type Roi = {
 };
 
 
-const COINGECKO_API_URL= `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd`
+const COINGECKO_API_URL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd`
 
 export const tokenQueryOptions = queryOptions({
 	retryOnMount: true,
@@ -54,4 +55,57 @@ export const tokenQueryOptions = queryOptions({
 		}
 		return data
 	}
+})
+
+export const bankListQueryOptions = queryOptions({
+	retryOnMount: true,
+	refetchOnWindowFocus: true,
+	gcTime: 30_000_000,
+	queryKey: ['bankList'],
+	queryFn: async () => {
+		try {
+			const list = (await import("@/data/banks/nigeria.json")).default
+			return list.banks
+		}
+		catch (error: any) {
+			console.log(`Failed to fetch bank list`, { error })
+			throw error
+		}
+	},
+	initialData: []
+})
+
+export const assetListQueryOptions = queryOptions({
+	retryOnMount: true,
+	refetchOnWindowFocus: true,
+	gcTime: 30_000_000,
+	// staleTime: 30_000,
+	queryKey: ['assetList'],
+	queryFn: async () => await assetList(),
+	initialData: []
+})
+
+export const offrampRateMutationOptions = mutationOptions({
+	mutationKey: ['getOfframpRate'],
+	mutationFn: async (values: { asset: string; }) => getRate({
+		data: {
+			asset: values.asset
+		}
+	})
+})
+
+export const offrampQuoteMutationOptions = mutationOptions({
+	mutationKey: ['getQuote'],
+	mutationFn: async (values: { asset: string; amount: number; }) => getQuote({
+		data: {
+			asset: values.asset,
+			amount: values.amount
+		}
+	})
+})
+
+export const bankLookUpMutationOptions = mutationOptions({
+	mutationKey: ['bankLookup'],
+	mutationFn: async (values: { bankCode: string; accountNumber: string }) =>
+		await bankLookup({ data: { accountNumber: values.accountNumber, bankCode: values.bankCode } })
 })
