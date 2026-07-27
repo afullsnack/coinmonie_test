@@ -86,7 +86,7 @@ export const assetList = createServerFn({method: "GET"})
 				throw error;
 			}
 
-			const dir = env.NODE_ENV === "development"? `./public/assets/tokens` : `./assets/tokens`;
+			const dir = env.NODE_ENV === "development"? `./public/assets/tokens` : `../assets/tokens`;
 			const files = await fs.readdir(dir)
 
 
