@@ -96,7 +96,10 @@ export function TokenSelectorModal({
 	            </InputGroup>)}
 						</DialogHeader>
 						{isMobile && (
-							<Select onValueChange={(id) => onNetworkSelect(networks.find((n) => n.id === id))}>
+							<Select onValueChange={(id) => {
+								console.log(`ID`, id)
+								onNetworkSelect(filteredNetworks.find((n) => n.id.toString() === id))
+							}}>
 								<SelectTrigger className='w-full'>
 									<SelectValue
 										placeholder="Select network"
@@ -105,7 +108,13 @@ export function TokenSelectorModal({
 								</SelectTrigger>
 								<SelectContent>
 									{filteredNetworks.map((network) => (
-										<SelectItem value={network.id.toString()}>{network.name}</SelectItem>
+										<SelectItem value={network.id.toString()}>
+											<Avatar className='size-4!'>
+	                      <AvatarImage src={network?.url} />
+	                      <AvatarFallback>{network.name.charAt(0)}</AvatarFallback>
+	                    </Avatar>
+											{network.name}
+										</SelectItem>
 									))}
 								</SelectContent>
 							</Select>

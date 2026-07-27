@@ -5,6 +5,28 @@ import { z } from 'zod'
 import fs from 'node:fs/promises'
 
 const SWITCH_API_URL = `https://api.onswitch.xyz`
+const FILES = [
+	'arbitrum.jpeg',
+	'avalanche.jpeg',
+	'base.png',
+	'berachain.png',
+	'bsc.jpeg',
+	'celo.jpeg',
+	'ethereum.png',
+	'gnosis.png',
+	'hyperevm.png',
+	'linea.png',
+	'mantle.jpeg',
+	'monad.jpeg',
+	'optimism.png',
+	'plasma.jpeg',
+	'polygon.png',
+	'solana.png',
+	'sonic.jpeg',
+	'tron.jpeg',
+	'usdc.png',
+	'usdt.png',
+]
 
 export const bankLookup = createServerFn({ method: 'POST' })
   .validator(
@@ -51,19 +73,6 @@ export const bankLookup = createServerFn({ method: 'POST' })
   })
 
 export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
-	console.log(`CWD`, process.cwd())
-
-	const dirents = await fs.opendir(process.cwd())
-	for await (const dir of dirents) {
-		console.log(`Directories`, { dir })
-		if (dir.name === "_chuncks" || dir.name === "_ssr" || dir.name === "_libs") {
-			const subdirents = await fs.opendir(`${process.cwd()}/${dir.name}`)
-			for await (const subdir of subdirents) {
-				console.log(`Sub dirents`, {subdir})
-			}
-		}
-	}
-
 	try {
     const { data: assets, error } = await betterFetch<{
       success: string
@@ -97,14 +106,7 @@ export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
       throw error
     }
 
-    const dir =
-      env.NODE_ENV === 'development'
-        ? `./public/assets/tokens`
-        : `/assets/tokens`
-    const files = await fs.readdir(dir).catch((error: any) => {
-      console.log(`Error reading files`, { error })
-      return []
-    })
+    const files = FILES
 
     return assets.data.map((asset) => {
       const assetMatcher = asset.code.toLowerCase()
