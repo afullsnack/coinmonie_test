@@ -55,7 +55,13 @@ export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
 
 	const dirents = await fs.opendir(process.cwd())
 	for await (const dir of dirents) {
-		console.log(`Directories`, {dir})
+		console.log(`Directories`, { dir })
+		if (dir.name === "_chuncks" || dir.name === "_ssr" || dir.name === "_libs") {
+			const subdirents = await fs.opendir(`${process.cwd()}/${dir.name}`)
+			for await (const subdir of subdirents) {
+				console.log(`Sub dirents`, {subdir})
+			}
+		}
 	}
 
 	try {
