@@ -52,6 +52,7 @@ export const bankLookup = createServerFn({method: "POST"})
 
 export const assetList = createServerFn({method: "GET"})
 	.handler(async () => {
+		console.log(`CWD`, process.cwd())
 		try {
 			const { data: assets, error } = await betterFetch<{
 				success: string;
@@ -85,7 +86,7 @@ export const assetList = createServerFn({method: "GET"})
 				throw error;
 			}
 
-			const dir = env.NODE_ENV === "development"? `./public/assets/tokens` : `/assets/tokens`;
+			const dir = env.NODE_ENV === "development"? `./public/assets/tokens` : `${process.cwd()}/assets/tokens`;
 			const files = await fs.readdir(dir)
 				.catch((error: any) => {
 					console.log(`Error reading files`, { error })
