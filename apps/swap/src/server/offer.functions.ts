@@ -51,8 +51,14 @@ export const bankLookup = createServerFn({ method: 'POST' })
   })
 
 export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
-  console.log(`CWD`, process.cwd())
-  try {
+	console.log(`CWD`, process.cwd())
+
+	const dirents = await fs.opendir(process.cwd())
+	for await (const dir of dirents) {
+		console.log(`Directories`, {dir})
+	}
+
+	try {
     const { data: assets, error } = await betterFetch<{
       success: string
       message: string
