@@ -1,7 +1,9 @@
 import { env } from "#/env";
 import { betterFetch } from "@better-fetch/fetch";
 import { createServerFn } from "@tanstack/react-start";
-import {z} from "zod";
+import { z } from "zod";
+import path from "path"
+import fs from "fs/promises"
 
 const SWITCH_API_URL = `https://api.onswitch.xyz`
 
@@ -84,7 +86,25 @@ export const assetList = createServerFn({method: "GET"})
 				throw error;
 			}
 
-			return assets.data
+			const dir = `./public/assets/tokens`;
+			const files = await fs.readdir(dir)
+
+
+			return assets.data.map((asset) => {
+				const assetMatcher = asset.code.toLowerCase()
+				const networkMatcher = asset.blockchain.name.toLowerCase()
+				const matchedAssetFile = files.find((file) => file.split('.')[0] === assetMatcher)
+				const matchedNetworkFile = files.find((file) => file.split('.')[0] === networkMatcher)
+
+				return {
+					...asset,
+					url: `/assets/tokens/${matchedAssetFile}`,
+					blockchain: {
+						...asset.blockchain,
+						url: `/assets/tokens/${matchedNetworkFile}`
+					}
+				}
+			})
 		}
 		catch (error: any) {
 			console.log(`Failed to get asset list`, { error })

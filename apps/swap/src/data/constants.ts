@@ -15,9 +15,15 @@ export interface Bank {
 	logo: string;
 }
 
-export type Network = { id: number; name: string; type: string }
+export type Network = {
+	id: number;
+	name: string;
+	type: string;
+	url?: string;
+}
 export type Asset = {
 	id: string;
+	url?: string;
 	name: string;
 	code: string;
 	decimals: number;

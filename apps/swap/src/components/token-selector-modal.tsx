@@ -6,10 +6,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
-import { TOKENS, NETWORKS } from '@/data/constants'
-import type {Asset, Network, Token} from "@/data/constants"
+import type {Asset, Network} from "@/data/constants"
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
 import {
   Item,
@@ -24,8 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { useQuery } from '@tanstack/react-query'
-import { assetListQueryOptions, tokenQueryOptions } from '#/lib/api-client'
-import type {Coin} from "#/lib/api-client"
+import { assetListQueryOptions } from '#/lib/api-client'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 interface TokenSelectorModalProps {
@@ -67,7 +64,8 @@ export function TokenSelectorModal({
   const filteredTokens = (assetList.data).filter((token) => {
     const matchesSearch =
       token.name.toLowerCase().includes(searchToken.toLowerCase()) ||
-      token.code.toLowerCase().includes(searchToken.toLowerCase())
+			token.code.toLowerCase().includes(searchToken.toLowerCase()) ||
+			token.address.toLowerCase().includes(searchToken.toLowerCase())
     const matchesNetwork = selectedNetwork
       ? token.blockchain.id === selectedNetwork.id
       : true
@@ -180,10 +178,14 @@ export function TokenSelectorModal({
 										onClose()
 									}}
                 >
-                  <ItemMedia>
+                  <ItemMedia className='relative'>
                     <Avatar>
-                      <AvatarImage src={token.image} />
+                      <AvatarImage src={token.url} />
                       <AvatarFallback>{token.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <Avatar className='absolute bottom-0 inset-e-0 size-4! bg-secondary border border-secondary'>
+                      <AvatarImage src={token.blockchain.url} />
+                      <AvatarFallback>{token.blockchain.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </ItemMedia>
                   <ItemContent className="flex-0! max-w-xs!">
