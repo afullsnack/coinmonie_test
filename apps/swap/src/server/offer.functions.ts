@@ -88,7 +88,7 @@ export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
     const dir =
       env.NODE_ENV === 'development'
         ? `./public/assets/tokens`
-        : `${process.cwd()}/assets/tokens`
+        : `/assets/tokens`
     const files = await fs.readdir(dir).catch((error: any) => {
       console.log(`Error reading files`, { error })
       return []
