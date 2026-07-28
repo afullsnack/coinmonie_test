@@ -89,16 +89,6 @@ function Home() {
 			accountName: bankLookup.data?.account_name || '',
 			accountNumber: bankLookup.data?.account_number || '',
 		})
-    // await new Promise((r, _) =>
-    //   setTimeout(() => {
-    //     setLoading(false)
-    //     setAddress('0x'.padEnd(32, '0'))
-    //   }, 3_000),
-    // )
-    // setIsFindingQuote(true)
-    // setTimeout(() => {
-    //   setIsFindingQuote(false)
-    // }, 2000)
   }
 
   console.log(`Address`, { address })
@@ -112,7 +102,8 @@ function Home() {
               handleSendAmountChange={handleSendAmountChange}
               sendAmount={sendAmount}
               setIsTokenModalOpen={setIsTokenModalOpen}
-              sendToken={sendToken}
+							sendToken={sendToken}
+              rate={rate.data?.rate}
             />
             <MiddleToggle />
             <ReceiveComponent

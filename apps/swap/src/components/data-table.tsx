@@ -175,7 +175,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       <span className="px-4 font-semibold justify-center">Date</span>
     ),
     cell: ({ row }) => {
-      return <span className="px-4">{row.original.date}</span>
+      return <span className="lg:px-4 capitalize">{row.original.date}</span>
     },
     enableHiding: false,
   },
@@ -227,8 +227,8 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: () => <div className="w-full text-left font-semibold">Status</div>,
     cell: ({ row }) => (
       <span
-        className={cn('px-1.5 text-muted-foreground', {
-          'text-green-500': row.original.status === 'Completed',
+        className={cn('text-muted-foreground', {
+          'text-green-500': row.original.status.toLowerCase() === 'completed',
         })}
       >
         {row.original.status}

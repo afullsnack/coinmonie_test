@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_home/transactions')({
 
 function Transactions() {
 	const history = useQuery(getHistoryQueryOptions)
-  console.log(`History`, history.data)
+  console.log(`History X`, history.data)
   return (
     <div className="p-4 w-full text-primary">
       <DataTable data={history.data} />

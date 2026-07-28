@@ -42,7 +42,7 @@ const ReceiveComponent = ({
             src="/nigeria.png"
             className="size-6 rounded-full object-contain"
           />
-          <span className="text-xs md:text-sm text-secondary">NGN Naira</span>
+          <span className="text-xs md:text-sm text-secondary">NGN</span>
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
         </Button>
       </div>
