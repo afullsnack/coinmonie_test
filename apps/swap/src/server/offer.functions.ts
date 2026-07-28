@@ -2,30 +2,29 @@ import { env } from '#/env'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import fs from 'node:fs/promises'
 
 const SWITCH_API_URL = `https://api.onswitch.xyz`
 const FILES = [
-	'arbitrum.jpeg',
-	'avalanche.jpeg',
-	'base.png',
-	'berachain.png',
-	'bsc.jpeg',
-	'celo.jpeg',
-	'ethereum.png',
-	'gnosis.png',
-	'hyperevm.png',
-	'linea.png',
-	'mantle.jpeg',
-	'monad.jpeg',
-	'optimism.png',
-	'plasma.jpeg',
-	'polygon.png',
-	'solana.png',
-	'sonic.jpeg',
-	'tron.jpeg',
-	'usdc.png',
-	'usdt.png',
+  'arbitrum.jpeg',
+  'avalanche.jpeg',
+  'base.png',
+  'berachain.png',
+  'bsc.jpeg',
+  'celo.jpeg',
+  'ethereum.png',
+  'gnosis.png',
+  'hyperevm.png',
+  'linea.png',
+  'mantle.jpeg',
+  'monad.jpeg',
+  'optimism.png',
+  'plasma.jpeg',
+  'polygon.png',
+  'solana.png',
+  'sonic.jpeg',
+  'tron.jpeg',
+  'usdc.png',
+  'usdt.png',
 ]
 
 export const bankLookup = createServerFn({ method: 'POST' })
@@ -73,7 +72,7 @@ export const bankLookup = createServerFn({ method: 'POST' })
   })
 
 export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
-	try {
+  try {
     const { data: assets, error } = await betterFetch<{
       success: string
       message: string
@@ -179,6 +178,94 @@ export const getQuote = createServerFn()
           currency: 'NGN',
           channel: 'BANK',
           exact_output: false,
+          developer_fee: 0.5,
+          // developer_recipient: ``
+        }),
+      })
+
+      if (error) {
+        console.log(`[BetterFetch] Failed to fetch quote`, { error })
+        throw error
+      }
+
+      return quote.data
+    } catch (error: any) {
+      console.log(`Failed to get offer quote`, { error })
+      throw error
+    }
+  })
+
+export const initiateOffer = createServerFn()
+  .validator(
+    z.object({
+      asset: z.string(),
+			amount: z.number(),
+			accountName: z.string(),
+			accountNumber: z.string(),
+      bankCode: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const { data: quote, error } = await betterFetch<{
+        success: boolean
+        message: string
+        timestamp: string
+        data: Array<{
+          status: string
+          type: string
+          reference: string
+          beneficiary: string
+          rate: number
+          developer_fee: {
+            amount: number
+            amount_usd: number
+            currency: string
+            network: string
+          }
+          source: {
+            amount: number
+            amount_usd: number
+            network: string
+            currency: string
+          }
+          destination: {
+            amount: number
+            amount_usd: number
+            network: string
+            currency: string
+          }
+          deposit: {
+            amount: number
+            address: string
+            asset: string
+            note: Array<string>
+          }
+          meta: any
+          created_at: string
+          updated_at: string
+        }>
+      }>(`${SWITCH_API_URL}/offramp/initiate`, {
+        method: 'POST',
+        headers: {
+          'x-service-key': env.SWITCH_API_KEY,
+        },
+        body: JSON.stringify({
+          amount: data.amount,
+          asset: data.asset,
+          country: 'NG',
+          currency: 'NGN',
+          channel: 'BANK',
+					exact_output: false,
+					reference: crypto.randomUUID(),
+					beneficiary: {
+						holder_type: "INDIVIDUAL",
+						holder_name: data.accountName,
+						account_number: data.accountNumber,
+						bank_code: data.bankCode,
+					},
+					sender_name: 'Coinmonie',
+          reason: "REMITTANCE",
           developer_fee: 0.5,
           // developer_recipient: ``
         }),

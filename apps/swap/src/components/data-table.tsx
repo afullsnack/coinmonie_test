@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 import {
   closestCenter,
   DndContext,
@@ -7,16 +7,16 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-} from "@dnd-kit/core"
-import type {DragEndEvent, UniqueIdentifier,} from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
+} from '@dnd-kit/core'
+import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import {
   arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   IconChevronDown,
   IconChevronLeft,
@@ -30,7 +30,7 @@ import {
   IconLoader,
   IconPlus,
   IconTrendingUp,
-} from "@tabler/icons-react"
+} from '@tabler/icons-react'
 import {
   flexRender,
   getCoreRowModel,
@@ -40,22 +40,28 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import type {ColumnDef, ColumnFiltersState, Row, SortingState, VisibilityState,} from "@tanstack/react-table"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import { toast } from "sonner"
-import { z } from "zod"
+} from '@tanstack/react-table'
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  Row,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/react-table'
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
-import { useIsMobile } from "#/hooks/use-mobile"
-import { Badge } from "#/components/ui/badge"
-import { Button } from "#/components/ui/button"
+import { useIsMobile } from '#/hooks/use-mobile'
+import { Badge } from '#/components/ui/badge'
+import { Button } from '#/components/ui/button'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "#/components/ui/chart"
-import type {ChartConfig} from "#/components/ui/chart"
-import { Checkbox } from "#/components/ui/checkbox"
+} from '#/components/ui/chart'
+import type { ChartConfig } from '#/components/ui/chart'
+import { Checkbox } from '#/components/ui/checkbox'
 import {
   Drawer,
   DrawerClose,
@@ -65,7 +71,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "#/components/ui/drawer"
+} from '#/components/ui/drawer'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -73,17 +79,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "#/components/ui/dropdown-menu"
-import { Input } from "#/components/ui/input"
-import { Label } from "#/components/ui/label"
+} from '#/components/ui/dropdown-menu'
+import { Input } from '#/components/ui/input'
+import { Label } from '#/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "#/components/ui/select"
-import { Separator } from "#/components/ui/separator"
+} from '#/components/ui/select'
+import { Separator } from '#/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -91,27 +97,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "#/components/ui/tabs"
-import { Link } from "@tanstack/react-router"
-import { cn } from "#/lib/utils"
+} from '#/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
+import { Link } from '@tanstack/react-router'
+import { cn } from '#/lib/utils'
 
 export const schema = z.object({
   // id: z.number(),
   date: z.string(),
   reference: z.string(),
   youWillSend: z.object({
-		amount: z.number(),
-		currency: z.string()
+    amount: z.number(),
+    currency: z.string(),
   }),
-	youWillReceive: z.object({
-		amount: z.number(),
-		currency: z.string()
+  youWillReceive: z.object({
+    amount: z.number(),
+    currency: z.string(),
   }),
   status: z.string(),
 })
@@ -137,75 +138,99 @@ function DragHandle({ id }: { id: number }) {
 }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  // {
+  //   id: "drag",
+  //   header: () => null,
+  // cell: ({ row }) => <DragHandle id={row.original.id} />,
+  // },
+  // {
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <div className="flex items-center justify-center">
+  //       <Checkbox
+  //         checked={
+  //           table.getIsAllPageRowsSelected() ||
+  //           (table.getIsSomePageRowsSelected() && "indeterminate")
+  //         }
+  //         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //         aria-label="Select all"
+  //       />
+  //     </div>
+  //   ),
+  //   cell: ({ row }) => (
+  //     <div className="flex items-center justify-center">
+  //       <Checkbox
+  //         checked={row.getIsSelected()}
+  //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //         aria-label="Select row"
+  //       />
+  //     </div>
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
   {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
-  },
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
+    accessorKey: 'date',
+    header: () => (
+      <span className="px-4 font-semibold justify-center">Date</span>
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "date",
-    header: "Date",
     cell: ({ row }) => {
-      return <span className="text-secondary">{row.original.date}</span>
+      return <span className="px-4">{row.original.date}</span>
     },
     enableHiding: false,
   },
   {
-    accessorKey: "reference",
-    header: "Reference",
-    cell: ({ row }) => (
-      <span className="text-secondary">
-        {row.original.reference}
-      </span>
+    accessorKey: 'reference',
+    header: () => (
+      <span className="font-semibold justify-center">Reference</span>
     ),
+    cell: ({ row }) => <span>{row.original.reference}</span>,
   },
-  {
+	{
+		id: 'send',
     accessorFn: (prop) => prop.youWillSend.currency,
-		header: "You'll send",
-		cell: ({ row }) => {
-			return <span className="text-secondary">{row.original.youWillSend.amount.toLocaleString('en-US', {maximumFractionDigits:0, minimumFractionDigits:0})} {row.original.youWillSend.currency}</span>
+    header: () => (
+      <span className="font-semibold justify-center">You'll send</span>
+    ),
+    cell: ({ row }) => {
+      return (
+        <span>
+          {row.original.youWillSend.amount.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+            minimumFractionDigits: 0,
+          })}{' '}
+          {row.original.youWillSend.currency}
+        </span>
+      )
+    },
+  },
+	{
+		id: 'receive',
+		accessorFn: (prop) => prop.youWillReceive.currency,
+		header: () => (
+      <span className="font-semibold justify-center">You'll receive</span>
+    ),
+    cell: ({ row }) => {
+      return (
+        <span>
+          {row.original.youWillReceive.amount.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+            minimumFractionDigits: 0,
+          })}{' '}
+          {row.original.youWillReceive.currency}
+        </span>
+      )
     },
   },
   {
-    accessorFn: (prop) => prop.youWillReceive.currency,
-		header: "You'll receive",
-		cell: ({ row }) => {
-			return <span className="text-secondary">{row.original.youWillReceive.amount.toLocaleString('en-US', {maximumFractionDigits: 0, minimumFractionDigits: 0})} {row.original.youWillReceive.currency}</span>
-    },
-  },
-  {
-    accessorKey: "status",
-    header: () => <div className="w-full text-left">Status</div>,
+    accessorKey: 'status',
+    header: () => <div className="w-full text-left font-semibold">Status</div>,
     cell: ({ row }) => (
-			<span className={cn("px-1.5 text-muted-foreground", {
-				"text-green-500": row.original.status === "Completed"
-      })}>
+      <span
+        className={cn('px-1.5 text-muted-foreground', {
+          'text-green-500': row.original.status === 'Completed',
+        })}
+      >
         {row.original.status}
       </span>
     ),
@@ -219,17 +244,17 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
 
   return (
     <TableRow
-      data-state={row.getIsSelected() && "selected"}
+      data-state={row.getIsSelected() && 'selected'}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 text-primary"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
       }}
     >
       {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
+        <TableCell key={cell.id} className="px-4">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}
@@ -240,14 +265,14 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
 export function DataTable({
   data: initialData,
 }: {
-    data: z.infer<typeof schema>[],
+  data: z.infer<typeof schema>[]
 }) {
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState({
@@ -258,12 +283,12 @@ export function DataTable({
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
+    useSensor(KeyboardSensor, {}),
   )
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data.map(({ reference }) => reference),
-    [data]
+    [data],
   )
 
   const table = useReactTable({
@@ -311,21 +336,6 @@ export function DataTable({
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        {/*<Select defaultValue="outline">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
-          </SelectContent>
-        </Select>*/}
         <div />
         <TabsList className="hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1 @4xl/main:flex">
           <TabsTrigger value="outline">Outline</TabsTrigger>
@@ -338,11 +348,18 @@ export function DataTable({
           <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" asChild>
-						<Link to="/" preload="intent">
-	            <IconPlus />
-	            <span className="hidden lg:inline">New Transfer</span>
-						</Link>
+          <Button
+            variant="default"
+            size="sm"
+            asChild
+            className="bg-accent"
+          >
+            <Link to="/" preload="intent">
+              <IconPlus className="text-secondary" />
+              <span className="hidden lg:inline text-secondary">
+                New Transfer
+              </span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -359,17 +376,21 @@ export function DataTable({
             id={sortableId}
           >
             <Table>
-							<TableHeader className="sticky top-0 z-10 bg-muted/10">
+              <TableHeader className="sticky top-0 z-10 bg-muted">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id} colSpan={header.colSpan} className="text-white">
+                        <TableHead
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          className="text-primary"
+                        >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
                                 header.column.columnDef.header,
-                                header.getContext()
+                                header.getContext(),
                               )}
                         </TableHead>
                       )
@@ -391,7 +412,7 @@ export function DataTable({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className="h-24 text-center text-primary"
                     >
                       No results.
                     </TableCell>
@@ -403,7 +424,7 @@ export function DataTable({
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
+            {table.getFilteredSelectedRowModel().rows.length} of{' '}
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
@@ -432,7 +453,7 @@ export function DataTable({
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              Page {table.getState().pagination.pageIndex + 1} of{' '}
               {table.getPageCount()}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -484,22 +505,22 @@ export function DataTable({
 }
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 },
 ]
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
+    label: 'Desktop',
+    color: 'var(--primary)',
   },
   mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
+    label: 'Mobile',
+    color: 'var(--primary)',
   },
 } satisfies ChartConfig
 
@@ -507,7 +528,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   const isMobile = useIsMobile()
 
   return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
+    <Drawer direction={isMobile ? 'bottom' : 'right'}>
       <DrawerTrigger asChild>
         <Button variant="link" className="w-fit px-0 text-left text-secondary">
           {item.date}
@@ -516,9 +537,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
       <DrawerContent>
         <DrawerHeader className="gap-1">
           <DrawerTitle>{item.reference}</DrawerTitle>
-          <DrawerDescription>
-						Transaction made {item.date}
-          </DrawerDescription>
+          <DrawerDescription>Transaction made {item.date}</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           {!isMobile && (
@@ -566,7 +585,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               <Separator />
               <div className="grid gap-2">
                 <div className="flex gap-2 leading-none font-medium">
-                  Trending up by 5.2% this month{" "}
+                  Trending up by 5.2% this month{' '}
                   <IconTrendingUp className="size-4" />
                 </div>
                 <div className="text-muted-foreground">

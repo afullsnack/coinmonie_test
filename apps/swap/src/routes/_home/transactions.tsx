@@ -103,7 +103,7 @@ export const Route = createFileRoute('/_home/transactions')({
 function Transactions() {
   const data = Route.useLoaderData()
   return (
-    <div className="p-4 w-full">
+    <div className="p-4 w-full text-primary">
       <DataTable data={data.transactions} />
     </div>
   )

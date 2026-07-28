@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { assetList, bankLookup, getQuote, getRate } from "#/server/offer.functions";
+import { assetList, bankLookup, getQuote, getRate, initiateOffer } from "#/server/offer.functions";
 
 export type Coin = {
   id: string;
@@ -80,6 +80,23 @@ export const offrampQuoteMutationOptions = mutationOptions({
 		data: {
 			asset: values.asset,
 			amount: values.amount
+		}
+	})
+})
+
+export const initiateOfframpMutationOptions = mutationOptions({
+	mutationKey: ['initiateOfframp'],
+	mutationFn: async (values: {
+		asset: string; amount: number; accountName: string;
+		accountNumber: string;
+		bankCode: string;
+	}) => initiateOffer({
+		data: {
+			asset: values.asset,
+			amount: values.amount,
+			accountName: values.accountName,
+			accountNumber: values.accountNumber,
+			bankCode: values.bankCode
 		}
 	})
 })
