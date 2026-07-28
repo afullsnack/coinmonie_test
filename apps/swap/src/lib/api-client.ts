@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { assetList, bankLookup, getQuote, getRate, initiateOffer } from "#/server/offer.functions";
+import { assetList, bankLookup, getQuote, getRate, history, initiateOffer } from "#/server/offer.functions";
 
 export type Coin = {
   id: string;
@@ -62,6 +62,16 @@ export const assetListQueryOptions = queryOptions({
 	// staleTime: 30_000,
 	queryKey: ['assetList'],
 	queryFn: async () => await assetList(),
+	initialData: []
+})
+
+export const getHistoryQueryOptions = queryOptions({
+	retryOnMount: true,
+	refetchOnWindowFocus: true,
+	gcTime: 30_000_000,
+	// staleTime: 30_000,
+	queryKey: ['getHistory'],
+	queryFn: async () => await history(),
 	initialData: []
 })
 

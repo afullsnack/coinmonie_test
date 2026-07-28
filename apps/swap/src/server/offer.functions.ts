@@ -1,7 +1,9 @@
+import type { Transaction } from '#/data/constants'
 import { env } from '#/env'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import {formatDistanceToNow} from "date-fns"
 
 const SWITCH_API_URL = `https://api.onswitch.xyz`
 const FILES = [
@@ -71,10 +73,46 @@ export const bankLookup = createServerFn({ method: 'POST' })
     }
   })
 
+export const history = createServerFn({method: "GET"})
+	.validator(z.object({
+		limit: z.number().optional(),
+		page: z.number().optional()
+	}).optional())
+	.handler(async ({ data }) => {
+		try {
+			const { data: history, error } = await betterFetch<{
+				success: boolean
+	      message: string
+	      timestamp: string
+				data: Array<Transaction>
+			}>(`${SWITCH_API_URL}/payment/history`, {
+				headers: {
+					'x-service-key': env.SWITCH_API_KEY
+				}
+			})
+
+			if (error) {
+				console.log(`Failed to get payment history`, { error })
+				throw error
+			}
+			return history.data.map((transaction) => ({
+				date: formatDistanceToNow(new Date(transaction.created_at)),
+				reference: transaction.reference,
+				youWillSend: {amount: transaction.source.amount, currency: transaction.source.currency},
+				youWillReceive: { amount: transaction.destination.amount, currency: transaction.destination.currency },
+				status: transaction.status
+			}))
+		}
+		catch (error: any) {
+			console.log(`Failed to make payment history request`, { error })
+			throw error
+		}
+	})
+
 export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
   try {
     const { data: assets, error } = await betterFetch<{
-      success: string
+      success: boolean
       message: string
       timestamp: string
       data: Array<{

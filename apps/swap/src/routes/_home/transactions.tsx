@@ -1,4 +1,6 @@
 import { DataTable } from '#/components/data-table'
+import { getHistoryQueryOptions } from '#/lib/api-client'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_home/transactions')({
@@ -101,10 +103,11 @@ export const Route = createFileRoute('/_home/transactions')({
 })
 
 function Transactions() {
-  const data = Route.useLoaderData()
+	const data = Route.useLoaderData()
+  const history = useQuery(getHistoryQueryOptions)
   return (
     <div className="p-4 w-full text-primary">
-      <DataTable data={data.transactions} />
+      <DataTable data={history.data} />
     </div>
   )
 }

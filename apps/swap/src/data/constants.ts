@@ -68,3 +68,48 @@ export const FIAT_CURRENCIES = [
 	{ id: "eur", symbol: "EUR", name: "Euro", rate: 0.92 },
 	{ id: "gbp", symbol: "GBP", name: "British Pound", rate: 0.79 },
 ];
+
+
+export interface Transaction {
+  status: "COMPLETED" | "PENDING" | "FAILED";
+  type: "OFFRAMP" | "ONRAMP";
+  reference: string;
+  beneficiary: string;
+  rate: number;
+  source: TransactionSource;
+  destination: TransactionDestination;
+  deposit: TransactionDeposit;
+  meta: TransactionMeta;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TransactionSource {
+  amount: number;
+  amount_usd: number;
+  network: string;
+  currency: string;
+}
+
+export interface TransactionDestination {
+  amount: number;
+  amount_usd: number;
+  network: string;
+  currency: string;
+}
+
+export interface TransactionDeposit {
+  amount: number;
+  address: string;
+  asset: string;
+  note: string[];
+}
+
+export interface TransactionMeta {
+  sender: {
+    wallet_address: string;
+  };
+  session_id: string;
+  hash: string;
+  explorer_url: string;
+}
