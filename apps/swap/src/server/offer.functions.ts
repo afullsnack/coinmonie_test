@@ -80,11 +80,11 @@ export const history = createServerFn({method: "GET"})
 	}).optional())
 	.handler(async ({ data }) => {
 		try {
-			const { data: history, error } = await betterFetch<{
+			const { data: historyResult, error } = await betterFetch<{
 				success: boolean
 	      message: string
 	      timestamp: string
-				data: Array<Transaction>
+				data: {data: Array<Transaction>}
 			}>(`${SWITCH_API_URL}/payment/history`, {
 				headers: {
 					'x-service-key': env.SWITCH_API_KEY
@@ -95,7 +95,8 @@ export const history = createServerFn({method: "GET"})
 				console.log(`Failed to get payment history`, { error })
 				throw error
 			}
-			return history.data.map((transaction) => ({
+
+			return historyResult.data.data.map((transaction) => ({
 				date: formatDistanceToNow(new Date(transaction.created_at)),
 				reference: transaction.reference,
 				youWillSend: {amount: transaction.source.amount, currency: transaction.source.currency},
