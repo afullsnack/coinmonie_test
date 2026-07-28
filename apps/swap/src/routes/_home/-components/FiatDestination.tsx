@@ -16,20 +16,10 @@ const FiatDestination = ({
 	selectedbank,
 	accountNumber,
 	onAccountNumberChange,
+	accountName,
+	isFetching,
 }: any) => {
 	const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
-
-	const bankLookup = useMutation(bankLookUpMutationOptions)
-
-	useEffect(() => {
-		console.log(`Account number`, {accountNumber})
-		if (accountNumber && accountNumber.length === 10) {
-			bankLookup.mutate({
-				bankCode: selectedbank?.code,
-				accountNumber: accountNumber,
-			})
-		}
-	}, [accountNumber])
 
 	return (
 		<>
@@ -38,7 +28,7 @@ const FiatDestination = ({
 				<Button
 					size="xs"
           onClick={() => setIsBankModalOpen(true)}
-					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-3xl", {
+					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-lg", {
 						// "": typeof selectedbank !== "undefined"
           })}
 				>
@@ -67,12 +57,12 @@ const FiatDestination = ({
         )}
       />
 			</InputGroup>
-			<div className='flex items-center justify-start gap-2'>{bankLookup.isPending
+			<div className='flex items-center justify-start gap-2'>{isFetching
 				? (<>
 						<Loader2 className='animate-spin size-4' />
 						<span>Getting account name...</span>
 					</>)
-				: (<span>{bankLookup.data?.account_name}</span>)}
+				: (<span>{accountName}</span>)}
 			</div>
 		</>
   )

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Copy, QrCode } from 'lucide-react'
+import { Copy, Loader2, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type { Asset, Bank, Network } from '#/data/constants'
-import { offrampRateMutationOptions } from '#/lib/api-client'
+import { bankLookUpMutationOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
@@ -36,8 +36,25 @@ function Home() {
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
   const [isFindingQuote, setIsFindingQuote] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
-	const [isLoading, setLoading] = useState<boolean>(false)
 	const rate = useMutation(offrampRateMutationOptions)
+	const quote = useMutation(offrampQuoteMutationOptions)
+	const initiate = useMutation({
+		...initiateOfframpMutationOptions,
+		onSuccess(data, variables, onMutateResult, context) {
+			setAddress(data.deposit.address)
+		},
+	})
+	const bankLookup = useMutation(bankLookUpMutationOptions)
+
+	useEffect(() => {
+		console.log(`Account number`, {accountNumber})
+		if (accountNumber && accountNumber.length === 10) {
+			bankLookup.mutate({
+				bankCode: selectedBank?.code || '',
+				accountNumber: accountNumber,
+			})
+		}
+	}, [accountNumber])
 
 	useEffect(() => {
 		if (sendToken) {
@@ -49,7 +66,7 @@ function Home() {
     setSendAmount(value)
     if (value && !Number.isNaN(Number.parseFloat(value))) {
       const amount = Number.parseFloat(value)
-      const received = (1) * amount * (rate.data?.rate ?? 1)
+      const received = amount * (rate.data?.rate ?? 1)
       setReceiveAmount(
         received.toLocaleString('en-US', {
           maximumFractionDigits: 2,
@@ -61,14 +78,23 @@ function Home() {
   }
 
   const handleSwap = async () => {
-    setLoading(true)
-    if (!sendAmount || !selectedBank || !accountNumber) return
-    await new Promise((r, _) =>
-      setTimeout(() => {
-        setLoading(false)
-        setAddress('0x'.padEnd(32, '0'))
-      }, 3_000),
-    )
+		if (!sendAmount || !selectedBank || !accountNumber) return
+		const amount = Number.parseFloat(sendAmount)
+		const receivingAmount = amount * (rate.data?.rate ?? 1)
+		console.log(`Amounts, send, receive`, sendAmount, amount, receivingAmount, receiveAmount)
+		initiate.mutate({
+			asset: sendToken?.id || '',
+			amount: Math.ceil(receivingAmount),
+			bankCode: bankLookup.data?.bank_code || '',
+			accountName: bankLookup.data?.account_name || '',
+			accountNumber: bankLookup.data?.account_number || '',
+		})
+    // await new Promise((r, _) =>
+    //   setTimeout(() => {
+    //     setLoading(false)
+    //     setAddress('0x'.padEnd(32, '0'))
+    //   }, 3_000),
+    // )
     // setIsFindingQuote(true)
     // setTimeout(() => {
     //   setIsFindingQuote(false)
@@ -102,7 +128,9 @@ function Home() {
             setIsBankModalOpen={setIsBankModalOpen}
             selectedbank={selectedBank}
             accountNumber={accountNumber}
-            onAccountNumberChange={setAccountNumber}
+						onAccountNumberChange={setAccountNumber}
+						accountName={bankLookup.data?.account_name}
+            isFetching={bankLookup.isPending}
           />
         </div>
 
@@ -110,23 +138,27 @@ function Home() {
           <Button
             onClick={handleSwap}
             size="lg"
-            variant="secondary"
             disabled={
-              !sendAmount || !selectedBank || !accountNumber || isLoading
+              !sendAmount || !selectedBank || !accountNumber || initiate.isPending
             }
             className="w-full max-h-18 h-full bg-accent text-secondary font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
           >
-            Choose asset to send
+            {!sendToken? 'Choose asset to send' : !accountNumber ? 'Enter account number' : ''}
+            {accountNumber && sendToken && !initiate.isPending && 'Create transfer'}
+						{accountNumber && sendToken && initiate.isPending && <>
+							<Loader2 className='animate-spin' />
+							<span>Creating transfer...</span>
+            </>}
           </Button>
         )}
         {address && (
-          <div className="bg-primary text-secondary rounded-xl p-4 border border-secondary/20 flex items-center justify-between">
+          <div className="bg-secondary text-primary rounded-xl p-4 border border-primary/20 flex items-center justify-between shadow-sm">
             <div className="">
-              <h3 className="m-0! text-secondary text-sm font-semibold">
-                Transfer {sendAmount}
+              <h3 className="m-0! text-primary text-sm font-semibold">
+                Transfer {sendAmount}{' '}
                 {sendToken?.code.toUpperCase()} to
               </h3>
-              <span className="text-xs">{address}</span>
+              <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">{address}</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -146,6 +178,12 @@ function Home() {
               </Button>
             </div>
           </div>
+				)}
+				{quote.data && (
+					<div className='flex items-center justify-between'>
+						<span>Swap {sendAmount} {sendToken?.code.toUpperCase()} to {receiveAmount} {receiveCurrency?.symbol}</span>
+						<span>Estimated time: <b>1 minute, 30 seconds</b></span>
+					</div>
         )}
       </div>
 

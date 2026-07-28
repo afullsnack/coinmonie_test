@@ -145,7 +145,7 @@ export const getQuote = createServerFn()
         success: boolean
         message: string
         timestamp: string
-        data: Array<{
+        data: {
           rate: number
           expiry: string
           settlement: string
@@ -165,7 +165,7 @@ export const getQuote = createServerFn()
             amount: number
             currency: string
           }
-        }>
+        }
       }>(`${SWITCH_API_URL}/offramp/quote`, {
         method: 'POST',
         headers: {
@@ -211,7 +211,7 @@ export const initiateOffer = createServerFn()
         success: boolean
         message: string
         timestamp: string
-        data: Array<{
+        data: {
           status: string
           type: string
           reference: string
@@ -244,7 +244,7 @@ export const initiateOffer = createServerFn()
           meta: any
           created_at: string
           updated_at: string
-        }>
+        }
       }>(`${SWITCH_API_URL}/offramp/initiate`, {
         method: 'POST',
         headers: {
