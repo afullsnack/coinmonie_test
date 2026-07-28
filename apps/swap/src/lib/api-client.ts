@@ -1,5 +1,4 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { betterFetch } from "@better-fetch/fetch";
 import { assetList, bankLookup, getQuote, getRate } from "#/server/offer.functions";
 
 export type Coin = {
@@ -37,25 +36,6 @@ type Roi = {
   percentage: number;
 };
 
-
-const COINGECKO_API_URL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd`
-
-export const tokenQueryOptions = queryOptions({
-	retryOnMount: true,
-	refetchOnWindowFocus: false,
-	gcTime: 30_000,
-	staleTime: 60_000,
-	queryKey: ['getTokens'],
-	queryFn: async () => {
-		const { data, error } = await betterFetch<Coin[]>(COINGECKO_API_URL)
-		if (error) {
-			console.log(`Error fetching tokens`, { error })
-
-			throw error
-		}
-		return data
-	}
-})
 
 export const bankListQueryOptions = queryOptions({
 	retryOnMount: true,

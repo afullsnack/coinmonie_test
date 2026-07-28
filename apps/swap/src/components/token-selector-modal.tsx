@@ -96,10 +96,13 @@ export function TokenSelectorModal({
 	            </InputGroup>)}
 						</DialogHeader>
 						{isMobile && (
-							<Select onValueChange={(id) => {
-								console.log(`ID`, id)
-								onNetworkSelect(filteredNetworks.find((n) => n.id.toString() === id))
-							}}>
+							<Select
+								defaultValue={selectedNetwork?.id.toString()}
+								onValueChange={(id) => {
+									console.log(`ID`, id)
+									onNetworkSelect(filteredNetworks.find((n) => n.id.toString() === id))
+								}}
+							>
 								<SelectTrigger className='w-full'>
 									<SelectValue
 										placeholder="Select network"
@@ -148,7 +151,7 @@ export function TokenSelectorModal({
                       <Button
                         variant="default"
                         size="icon-xs"
-                        className="rounded-full"
+                        className="rounded-full bg-accent"
                       >
                         <Check className='size-4' />
                       </Button>

@@ -35,17 +35,23 @@ const SendComponent = ({
       <div className="flex-1 items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4 bg-accent"
+          className="flex items-center justify-between gap-2 rounded-3xl h-auto max-h-12 px-3! py-4 bg-accent group"
         >
           {!sendToken && (
             <span className="text-xs md:text-sm">Choose token</span>
           )}
           {sendToken && (
-            <>
-              <img
-                src={sendToken.url}
-                className="m-0! size-6! rounded-full object-contain"
-              />
+						<>
+							<div className="relative rounded-full w-6">
+	              <img
+	                src={sendToken.url}
+	                className="m-0! size-6! rounded-full object-contain"
+	              />
+	              <img
+	                src={sendToken.blockchain.url}
+	                className="m-0! size-3! rounded-full object-contain absolute bottom-0 inset-e-0 border border-accent group-hover:border-primary"
+	              />
+							</div>
               <span className="text-white font-medium">
                 {sendToken.code.toUpperCase()}
               </span>
