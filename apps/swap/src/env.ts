@@ -20,6 +20,18 @@ export const env = createEnv({
 			.default(false),
 		ADMIN_EMAIL: z.string().email().optional(),
 		ADMIN_PASSWORD: z.string().min(8).optional(),
+		FEATURE_FLAG_DEVELOPER_FEE: z
+			.string()
+			.transform((v) => v === "true")
+			.default(false),
+		DEVELOPER_FEE_PERCENT: z
+			.string()
+			.default("0")
+			.transform((v) => Number(v)),
+		FEATURE_FLAG_RATE_LIMIT: z
+			.string()
+			.default("true")
+			.transform((v) => v !== "false"),
 	},
 
 	/**

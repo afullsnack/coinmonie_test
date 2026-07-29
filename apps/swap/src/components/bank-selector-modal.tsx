@@ -66,13 +66,13 @@ export function BankSelectorModal({
       <DialogContent className="overflow-hidden">
         <div className="flex flex-col items-start justify-start gap-3">
           <DialogHeader>
-            <DialogTitle className="text-left text-2xl lg:text-lg">{(fiat.country === "NG")? 'Choose a bank' : 'Choose a carier'}</DialogTitle>
+            <DialogTitle className="text-left text-2xl lg:text-lg">{(fiat.country === "NG")? 'Choose a bank' : 'Choose a carrier'}</DialogTitle>
             <DialogDescription>
               Select option from list or search
             </DialogDescription>
           </DialogHeader>
           <InputGroup>
-            <InputGroupInput placeholder={(fiat.country === "NG")? "Search bank" : "Search carier"} onChange={(e) => setSearch(e.target.value)} />
+            <InputGroupInput placeholder={(fiat.country === "NG")? "Search bank" : "Search carrier"} onChange={(e) => setSearch(e.target.value)} />
             <InputGroupAddon>
               <SearchIcon />
             </InputGroupAddon>

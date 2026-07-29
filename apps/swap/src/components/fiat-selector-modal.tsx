@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { LOCAL } from '@/data/constants'
+import { LOCAL, isFlagImage } from '@/data/constants'
 import type { Fiat } from '@/data/constants'
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
 import {
@@ -20,7 +20,6 @@ import {
 } from './ui/item'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
-import { useMediaQuery } from '#/hooks/use-media-query'
 
 interface FiatSelectorModalProps {
   open: boolean
@@ -37,7 +36,6 @@ export function FiatSelectorModal({
   onFiatSelect,
 }: FiatSelectorModalProps) {
   const [searchFiat, setSearchFiat] = useState('')
-  // const isMobile = useMediaQuery('(max-width: 768px)')
 
   const filteredFiats = LOCAL.filter((fiat) => {
     const matchesSearch =
@@ -95,12 +93,16 @@ export function FiatSelectorModal({
                 }}
               >
                 <ItemMedia>
-                  <Avatar>
-                    <AvatarImage src={fiat.url} />
-                    <AvatarFallback className="bg-secondary">
-                      {fiat.currency.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  {isFlagImage(fiat.url) ? (
+                    <Avatar>
+                      <AvatarImage src={fiat.url} />
+                      <AvatarFallback className="bg-secondary">
+                        {fiat.currency.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <span className="text-xl leading-none" aria-hidden="true">{fiat.url}</span>
+                  )}
                 </ItemMedia>
                 <ItemContent className="gap-1">
                   <ItemTitle>{fiat.currency}</ItemTitle>

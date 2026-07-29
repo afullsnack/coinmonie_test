@@ -18,18 +18,9 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconCircleCheckFilled,
-  IconDotsVertical,
-  IconGripVertical,
-  IconLayoutColumns,
-  IconLoader,
   IconPlus,
-  IconTrendingUp,
 } from '@tabler/icons-react'
 import {
   flexRender,
@@ -48,48 +39,10 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/react-table'
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
-import { toast } from 'sonner'
 import { z } from 'zod'
-
-import { useIsMobile } from '#/hooks/use-mobile'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '#/components/ui/chart'
-import type { ChartConfig } from '#/components/ui/chart'
-import { Checkbox } from '#/components/ui/checkbox'
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '#/components/ui/drawer'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
-import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '#/components/ui/select'
-import { Separator } from '#/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -116,26 +69,6 @@ export const schema = z.object({
   }),
   status: z.string(),
 })
-
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="size-7 text-muted-foreground hover:bg-transparent"
-    >
-      <IconGripVertical className="size-3 text-muted-foreground" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
   // {
@@ -422,50 +355,13 @@ export function DataTable({
             </Table>
           </DndContext>
         </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value))
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
+        {table.getPageCount() > 1 && (
+          <div className="flex items-center justify-between px-4">
+            <div className="text-sm font-medium text-muted-foreground">
               Page {table.getState().pagination.pageIndex + 1} of{' '}
               {table.getPageCount()}
             </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 className="size-8"
@@ -486,125 +382,11 @@ export function DataTable({
                 <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
               </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
             </div>
           </div>
-        </div>
+        )}
       </TabsContent>
     </Tabs>
   )
 }
 
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 },
-]
-
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'var(--primary)',
-  },
-  mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)',
-  },
-} satisfies ChartConfig
-
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
-  const isMobile = useIsMobile()
-
-  return (
-    <Drawer direction={isMobile ? 'bottom' : 'right'}>
-      <DrawerTrigger asChild>
-        <Button variant="link" className="w-fit px-0 text-left text-secondary">
-          {item.date}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.reference}</DrawerTitle>
-          <DrawerDescription>Transaction made {item.date}</DrawerDescription>
-        </DrawerHeader>
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {!isMobile && (
-            <>
-              <ChartContainer config={chartConfig}>
-                <AreaChart
-                  accessibilityLayer
-                  data={chartData}
-                  margin={{
-                    left: 0,
-                    right: 10,
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                    hide
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <Area
-                    dataKey="mobile"
-                    type="natural"
-                    fill="var(--color-mobile)"
-                    fillOpacity={0.6}
-                    stroke="var(--color-mobile)"
-                    stackId="a"
-                  />
-                  <Area
-                    dataKey="desktop"
-                    type="natural"
-                    fill="var(--color-desktop)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-desktop)"
-                    stackId="a"
-                  />
-                </AreaChart>
-              </ChartContainer>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="flex gap-2 leading-none font-medium">
-                  Trending up by 5.2% this month{' '}
-                  <IconTrendingUp className="size-4" />
-                </div>
-                <div className="text-muted-foreground">
-                  Showing total visitors for the last 6 months. This is just
-                  some random text to test the layout. It spans multiple lines
-                  and should wrap around.
-                </div>
-              </div>
-              <Separator />
-            </>
-          )}
-        </div>
-        <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  )
-}

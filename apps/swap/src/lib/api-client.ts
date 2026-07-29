@@ -1,10 +1,13 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
 import {
+  adminGetWebhookConfig,
+  adminGetWebhookEventsForReference,
   adminListTransactions,
   adminStats,
   assetList,
   bankLookup,
   enabledCurrencies,
+  getCoverage,
   getInstitution,
   getQuote,
   getRate,
@@ -18,7 +21,17 @@ import {
   listAdmins,
   resetAdminPassword,
 } from '#/server/admin.functions'
-import { toast } from 'sonner'
+import { adminListWaitlist, joinWaitlist } from '#/server/waitlist.functions'
+import { showErrorDialog } from '#/lib/error-dialog-store'
+
+function errorMessage(error: unknown, fallback: string): string {
+  const message =
+    error && typeof error === 'object' && 'message' in error
+      ? String((error as { message?: unknown }).message ?? '')
+      : ''
+
+  return message || fallback
+}
 
 export type Coin = {
   id: string
@@ -109,6 +122,15 @@ export const enabledCurrenciesQueryOptions = queryOptions({
   initialData: [],
 })
 
+export const coverageQueryOptions = queryOptions({
+  retryOnMount: true,
+  gcTime: 30_000_000,
+  staleTime: 300_000,
+  queryKey: ['coverage'],
+  queryFn: async () => await getCoverage(),
+  initialData: {} as Record<string, Record<string, { min: number; max: number }>>,
+})
+
 export const adminTransactionsQueryOptions = queryOptions({
   queryKey: ['admin', 'transactions'],
   queryFn: async () => await adminListTransactions(),
@@ -122,6 +144,30 @@ export const adminStatsQueryOptions = queryOptions({
 export const adminListQueryOptions = queryOptions({
   queryKey: ['admin', 'admins'],
   queryFn: async () => await listAdmins(),
+})
+
+export const adminWebhookConfigQueryOptions = queryOptions({
+  queryKey: ['admin', 'webhookConfig'],
+  queryFn: async () => await adminGetWebhookConfig(),
+})
+
+export const adminWebhookEventsQueryOptions = (reference: string) => queryOptions({
+  queryKey: ['admin', 'webhookEvents', reference],
+  queryFn: async () => await adminGetWebhookEventsForReference({ data: { reference } }),
+  enabled: Boolean(reference),
+})
+
+export const adminWaitlistQueryOptions = queryOptions({
+  queryKey: ['admin', 'waitlist'],
+  queryFn: async () => await adminListWaitlist(),
+})
+
+export const joinWaitlistMutationOptions = mutationOptions({
+  mutationKey: ['joinWaitlist'],
+  mutationFn: async (values: { email: string }) => await joinWaitlist({ data: values }),
+  onError(error) {
+    showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
+  },
 })
 
 export const addAdminMutationOptions = mutationOptions({
@@ -159,9 +205,7 @@ export const offrampRateMutationOptions = mutationOptions({
       },
     }),
   onError(error) {
-    toast.error(`Failed to get rate`, {
-      description: error.message,
-    })
+    showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
   },
 })
 
@@ -181,10 +225,8 @@ export const offrampQuoteMutationOptions = mutationOptions({
 				currency: values.currency,
       },
     }),
-  onError(error, ) {
-    toast.error(`Failed to get quote`, {
-      description: error.message,
-    })
+  onError(error) {
+    showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
   },
 })
 
@@ -215,9 +257,7 @@ export const initiateOfframpMutationOptions = mutationOptions({
       },
     }),
   onError(error) {
-    toast.error(`Failed to create transfer`, {
-      description: error.message,
-    })
+    showErrorDialog(errorMessage(error, 'Please check your details and try again.'))
   },
 })
 
@@ -240,8 +280,6 @@ export const bankLookUpMutationOptions = mutationOptions({
 			},
     }),
   onError(error) {
-    toast.error(`Could not get destination bank`, {
-      description: error.message,
-    })
+    showErrorDialog(errorMessage(error, 'Double-check the account or number and try again.'))
   },
 })

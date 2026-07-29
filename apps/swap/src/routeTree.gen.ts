@@ -18,6 +18,7 @@ import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AdminChangePasswordRouteImport } from './routes/admin/change-password'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiWebhooksSwitchRouteImport } from './routes/api/webhooks/switch'
 
 const HomeRouteRoute = HomeRouteRouteImport.update({
   id: '/_home',
@@ -63,6 +64,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWebhooksSwitchRoute = ApiWebhooksSwitchRouteImport.update({
+  id: '/api/webhooks/switch',
+  path: '/api/webhooks/switch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof HomeIndexRoute
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/switch': typeof ApiWebhooksSwitchRoute
 }
 export interface FileRoutesByTo {
   '/transactions': typeof HomeTransactionsRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/': typeof HomeIndexRoute
   '/admin': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/switch': typeof ApiWebhooksSwitchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_home/': typeof HomeIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/webhooks/switch': typeof ApiWebhooksSwitchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/'
     | '/api/auth/$'
+    | '/api/webhooks/switch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/transactions'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/api/auth/$'
+    | '/api/webhooks/switch'
   id:
     | '__root__'
     | '/_home'
@@ -126,12 +137,14 @@ export interface FileRouteTypes {
     | '/_home/'
     | '/admin/'
     | '/api/auth/$'
+    | '/api/webhooks/switch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   HomeRouteRoute: typeof HomeRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiWebhooksSwitchRoute: typeof ApiWebhooksSwitchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -199,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/webhooks/switch': {
+      id: '/api/webhooks/switch'
+      path: '/api/webhooks/switch'
+      fullPath: '/api/webhooks/switch'
+      preLoaderRoute: typeof ApiWebhooksSwitchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -238,6 +258,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRouteRoute: HomeRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiWebhooksSwitchRoute: ApiWebhooksSwitchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

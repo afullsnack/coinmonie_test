@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, serial, text, timestamp, boolean, numeric, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, boolean, numeric, index, jsonb } from "drizzle-orm/pg-core";
 
 export const todos = pgTable("todos", {
 	id: serial().primaryKey(),
@@ -127,3 +127,28 @@ export const transactions = pgTable(
 	},
 	(table) => [index("transactions_reference_idx").on(table.reference)],
 );
+
+export const webhookEvents = pgTable(
+	"webhook_events",
+	{
+		id: serial().primaryKey(),
+		source: text("source").notNull().default("switch"),
+		eventType: text("event_type").notNull(),
+		reference: text("reference"),
+		depositAddress: text("deposit_address"),
+		transactionHash: text("transaction_hash"),
+		signatureValid: boolean("signature_valid").notNull(),
+		payload: jsonb("payload").notNull(),
+		receivedAt: timestamp("received_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("webhook_events_reference_idx").on(table.reference),
+		index("webhook_events_deposit_address_idx").on(table.depositAddress),
+	],
+);
+
+export const waitlistSignups = pgTable("waitlist_signups", {
+	id: serial().primaryKey(),
+	email: text("email").notNull().unique(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+});

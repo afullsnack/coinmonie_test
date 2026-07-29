@@ -34,7 +34,7 @@ function RouteComponent() {
         <Container className="max-w-4xl p-0!">
           <header className="flex items-center justify-between px-4">
             <Link className="flex items-center gap-2" to="/admin">
-              <img src="/coinmonie_full_logo_primary.png" className="object-contain h-12" />
+              <img src="/coinmonie_full_logo_rgb_white_transparent.png" className="object-contain h-12" />
             </Link>
           </header>
         </Container>

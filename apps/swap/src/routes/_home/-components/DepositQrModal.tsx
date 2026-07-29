@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
-import { Button } from '#/components/ui/button'
 
 const truncateAddress = (address: string) =>
   address.length > 14 ? `${address.slice(0, 6)}...${address.slice(-6)}` : address
@@ -28,12 +27,12 @@ const DepositQrModal = ({
           <DialogTitle className="text-center">Scan to deposit</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4 py-2">
-          <div className="relative rounded-2xl border border-border bg-white p-4">
-            <QRCode value={address} size={220} />
+          <div className="relative rounded-xl border border-border bg-white p-4">
+            <QRCode value={address} size={220} level="H" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center size-12 rounded-xl bg-white shadow-md ring-4 ring-white">
               <img
-                src="/coinmonie_full_logo_primary.png"
-                className="size-8 object-contain"
+                src="/coinmonie_full_logo_rgb_white_transparent.png"
+                className="size-8 object-contain brightness-0"
                 alt=""
               />
             </div>

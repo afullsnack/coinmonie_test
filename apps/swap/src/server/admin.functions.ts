@@ -1,10 +1,9 @@
 import { db } from '#/db'
 import { account, user } from '#/db/schema'
-import { auth } from '#/lib/auth'
 import { requireAdminSession, requireSuperAdminSession, isSuperAdmin } from '#/lib/require-admin-session'
 import { hashPassword } from 'better-auth/crypto'
 import { createServerFn } from '@tanstack/react-start'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 const ADMIN_EMAIL_DOMAIN = '@coinmonie.com'
@@ -39,24 +38,33 @@ export const addAdmin = createServerFn({ method: 'POST' })
 			throw new Error(`Admin accounts must use a ${ADMIN_EMAIL_DOMAIN} email address`)
 		}
 
+		const normalizedEmail = data.email.toLowerCase()
+
 		const existing = await db.query.user.findFirst({
-			where: (user, { eq }) => eq(user.email, data.email),
+			where: (user, { eq }) => eq(user.email, normalizedEmail),
 		})
 		if (existing) {
 			throw new Error('An account with this email already exists')
 		}
 
-		await auth.api.signUpEmail({
-			body: {
-				email: data.email,
-				password: data.password,
-				name: data.name,
-			},
+		const userId = crypto.randomUUID()
+		const hashed = await hashPassword(data.password)
+
+		await db.insert(user).values({
+			id: userId,
+			name: data.name,
+			email: normalizedEmail,
+			emailVerified: true,
+			mustChangePassword: true,
 		})
 
-		await db.update(user)
-			.set({ mustChangePassword: true })
-			.where(eq(user.email, data.email))
+		await db.insert(account).values({
+			id: crypto.randomUUID(),
+			accountId: userId,
+			providerId: 'credential',
+			userId,
+			password: hashed,
+		})
 
 		return { success: true }
 	})
@@ -78,7 +86,7 @@ export const resetAdminPassword = createServerFn({ method: 'POST' })
 
 		await db.update(account)
 			.set({ password: hashed })
-			.where(eq(account.userId, data.userId))
+			.where(and(eq(account.userId, data.userId), eq(account.providerId, 'credential')))
 
 		await db.update(user)
 			.set({ mustChangePassword: true })
@@ -110,7 +118,7 @@ export const changeOwnPassword = createServerFn({ method: 'POST' })
 
 		await db.update(account)
 			.set({ password: hashed })
-			.where(eq(account.userId, session.user.id))
+			.where(and(eq(account.userId, session.user.id), eq(account.providerId, 'credential')))
 
 		await db.update(user)
 			.set({ mustChangePassword: false })

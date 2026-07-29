@@ -1,0 +1,63 @@
+name: Deploy swap to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/swap/**"
+      - ".github/workflows/deploy-swap.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-swap-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: apps/swap
+        env:
+          NITRO_PRESET: cloudflare_module
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SWITCH_API_URL: ${{ secrets.SWITCH_API_URL }}
+          SWITCH_API_KEY: ${{ secrets.SWITCH_API_KEY }}
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          NODE_ENV: production
+          FEATURE_FLAG_TRANSACTION_HISTORY: ${{ secrets.FEATURE_FLAG_TRANSACTION_HISTORY }}
+          FEATURE_FLAG_CURRENCIES: ${{ secrets.FEATURE_FLAG_CURRENCIES }}
+          FEATURE_FLAG_ADMIN_DASHBOARD: ${{ secrets.FEATURE_FLAG_ADMIN_DASHBOARD }}
+          FEATURE_FLAG_DEVELOPER_FEE: ${{ secrets.FEATURE_FLAG_DEVELOPER_FEE }}
+          DEVELOPER_FEE_PERCENT: ${{ secrets.DEVELOPER_FEE_PERCENT }}
+          FEATURE_FLAG_RATE_LIMIT: ${{ secrets.FEATURE_FLAG_RATE_LIMIT }}
+        run: pnpm build
+
+      - name: Push runtime secrets to the Worker
+        working-directory: apps/swap/.output
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "${{ secrets.DATABASE_URL }}" | npx wrangler secret put DATABASE_URL
+          echo "${{ secrets.SWITCH_API_KEY }}" | npx wrangler secret put SWITCH_API_KEY
+          echo "${{ secrets.ADMIN_EMAIL }}" | npx wrangler secret put ADMIN_EMAIL
+          echo "${{ secrets.ADMIN_PASSWORD }}" | npx wrangler secret put ADMIN_PASSWORD
+
+      - name: Deploy
+        working-directory: apps/swap
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec nitro deploy --prebuilt

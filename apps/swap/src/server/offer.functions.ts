@@ -1,11 +1,12 @@
-import type { Transaction } from '#/data/constants'
 import { LOCAL } from '#/data/constants'
 import { env } from '#/env'
 import { db } from '#/db'
 import { transactions } from '#/db/schema'
 import { requireAdminSession } from '#/lib/require-admin-session'
+import { enforceRateLimit } from '#/lib/rate-limit'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
+import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import {formatDistanceToNow} from "date-fns"
 
@@ -37,6 +38,53 @@ export const enabledCurrencies = createServerFn({ method: 'GET' }).handler(async
 	return LOCAL.filter((fiat) => env.FEATURE_FLAG_CURRENCIES.includes(fiat.currency))
 })
 
+export const getCoverage = createServerFn({ method: 'GET' }).handler(async () => {
+	try {
+		const { data, error } = await betterFetch<{
+			success: boolean
+			message: string
+			timestamp: string
+			data: Array<{
+				country: string
+				currency: Array<string>
+				channel: Array<string>
+				payout_limit: Record<string, { min: string; max: string } | string>
+			}>
+		}>(`${SWITCH_API_URL}/coverage?direction=OFFRAMP`, {
+			method: 'GET',
+			headers: {
+				'x-service-key': env.SWITCH_API_KEY,
+			},
+		})
+
+		if (error) {
+			console.log(`[BetterFetch] Failed to fetch coverage`, { error })
+			throw error
+		}
+
+		const parseUsd = (value: string) => Number(value.replace(/[^0-9.]/g, ''))
+
+		const limits: Record<string, Record<string, { min: number; max: number }>> = {}
+		for (const entry of data.data) {
+			limits[entry.country] = {}
+			for (const channel of entry.channel) {
+				const limit = entry.payout_limit[channel]
+				if (limit && typeof limit === 'object') {
+					limits[entry.country][channel] = {
+						min: parseUsd(limit.min),
+						max: parseUsd(limit.max),
+					}
+				}
+			}
+		}
+
+		return limits
+	} catch (error) {
+		console.log(`Failed to get coverage`, { error })
+		throw error
+	}
+})
+
 export const bankLookup = createServerFn({ method: 'POST' })
   .validator(
     z.object({
@@ -48,6 +96,7 @@ export const bankLookup = createServerFn({ method: 'POST' })
     }),
   )
   .handler(async ({ data }) => {
+    await enforceRateLimit(getRequest(), 'bankLookup', 20, 60_000)
     try {
       const { data: lookupBank, error } = await betterFetch<{
         success: boolean
@@ -136,6 +185,7 @@ export const history = createServerFn({method: "GET"})
 		page: z.number().optional()
 	}))
 	.handler(async ({ data }) => {
+		await enforceRateLimit(getRequest(), 'history', 40, 60_000)
 		try {
 			const rows = await db.query.transactions.findMany({
 				where: (transactions, { eq, and, ne }) => and(
@@ -159,18 +209,6 @@ export const history = createServerFn({method: "GET"})
 			console.log(`Failed to load transaction history`, { error })
 			throw error
 		}
-	})
-
-export const getTransactionByReference = createServerFn({ method: 'GET' })
-	.validator(z.object({ reference: z.string() }))
-	.handler(async ({ data }) => {
-		const transaction = await db.query.transactions.findFirst({
-			where: (transactions, { eq }) => eq(transactions.reference, data.reference),
-		})
-		if (!transaction) {
-			throw new Error('Transaction not found')
-		}
-		return transaction
 	})
 
 export const adminListTransactions = createServerFn({ method: 'GET' })
@@ -199,6 +237,27 @@ export const adminStats = createServerFn({ method: 'GET' })
 			totalCompletedSourceUsd,
 		}
 	})
+
+export const adminGetWebhookEventsForReference = createServerFn({ method: 'GET' })
+	.validator(z.object({ reference: z.string() }))
+	.handler(async ({ data }) => {
+		await requireAdminSession()
+		const rows = await db.query.webhookEvents.findMany({
+			where: (webhookEvents, { eq }) => eq(webhookEvents.reference, data.reference),
+			orderBy: (webhookEvents, { asc }) => asc(webhookEvents.receivedAt),
+		})
+		return rows.map((row) => ({
+			...row,
+			payload: JSON.stringify(row.payload),
+		}))
+	})
+
+export const adminGetWebhookConfig = createServerFn({ method: 'GET' }).handler(async () => {
+	await requireAdminSession()
+	return {
+		webhookUrl: env.SERVER_URL ? `${env.SERVER_URL}/api/webhooks/switch` : null,
+	}
+})
 
 export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
   try {
@@ -271,6 +330,7 @@ export const getQuote = createServerFn()
     }),
   )
   .handler(async ({ data }) => {
+    await enforceRateLimit(getRequest(), 'getQuote', 40, 60_000)
     try {
       const { data: quote, error } = await betterFetch<{
         success: boolean
@@ -290,11 +350,15 @@ export const getQuote = createServerFn()
           fee_inclusive: boolean
           source: {
             amount: number
+            amount_usd: number
             currency: string
+            network: string
           }
           destination: {
             amount: number
+            amount_usd: number
             currency: string
+            network: string
           }
         }
       }>(`${SWITCH_API_URL}/offramp/quote`, {
@@ -308,7 +372,9 @@ export const getQuote = createServerFn()
           country: data.country,
           currency: data.currency,
           exact_output: false,
-          // developer_fee: 0.5,
+          ...(env.FEATURE_FLAG_DEVELOPER_FEE
+            ? { developer_fee: env.DEVELOPER_FEE_PERCENT }
+            : {}),
         }),
       })
 
@@ -339,6 +405,7 @@ export const initiateOffer = createServerFn()
     }),
   )
   .handler(async ({ data }) => {
+    await enforceRateLimit(getRequest(), 'initiateOffer', 10, 60_000)
     try {
       const { data: quote, error } = await betterFetch<{
         success: boolean
@@ -399,8 +466,10 @@ export const initiateOffer = createServerFn()
 					},
 					sender_name: 'Coinmonie',
           reason: "REMITTANCE",
-          developer_fee: 0.5,
-          // developer_recipient: ``
+          ...(env.FEATURE_FLAG_DEVELOPER_FEE
+            ? { developer_fee: env.DEVELOPER_FEE_PERCENT }
+            : {}),
+          ...(env.SERVER_URL ? { callback_url: `${env.SERVER_URL}/api/webhooks/switch` } : {}),
         }),
       })
 
@@ -443,6 +512,7 @@ export const getRate = createServerFn()
     }),
   )
   .handler(async ({ data }) => {
+    await enforceRateLimit(getRequest(), 'getRate', 40, 60_000)
     try {
       const { data: rate, error } = await betterFetch<{
         success: boolean

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useRouteContext } from '@tanstack/react-router'
+import { motion } from 'motion/react'
 import { Copy, Loader2, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
@@ -7,35 +8,28 @@ import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
-import { assetListQueryOptions, bankLookUpMutationOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
+import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
 import { addMyDepositAddress } from '#/lib/my-transactions'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
 import DepositQrModal from './-components/DepositQrModal'
+import QuoteCountdown from './-components/QuoteCountdown'
+import WaitlistSignup from './-components/WaitlistSignup'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import CopyButton from '#/components/ui/copy-button'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
-
-
-const BASE_ASSET = 'NGN'
-const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
 	const queryClient = useRouteContext({from: "/_home/", select: (c) => c.queryClient})
   const [sendToken, setSendToken] = useState<Asset | null>(null)
   const currencies = useQuery(enabledCurrenciesQueryOptions)
   const assets = useQuery(assetListQueryOptions)
+  const coverage = useQuery(coverageQueryOptions)
   const [fiat, setFiat] = useState<Fiat | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
-  const [receiveCurrency, setReceiveCurrency] = useState<{
-    id: string
-    symbol: string
-    name: string
-    rate: number
-  } | null>(null)
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
   const [sendAmount, setSendAmount] = useState('')
   const [receiveAmount, setReceiveAmount] = useState('')
@@ -45,12 +39,16 @@ function Home() {
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
   const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
+  const [reference, setReference] = useState<string | null>(null)
+  const [expiry, setExpiry] = useState<string | null>(null)
 	const rate = useMutation(offrampRateMutationOptions)
 	const quote = useMutation(offrampQuoteMutationOptions)
 	const initiate = useMutation({
 		...initiateOfframpMutationOptions,
 		onSuccess(data) {
 			setAddress(data.deposit.address)
+			setReference(data.reference)
+			setExpiry(quote.data?.expiry ?? null)
 			addMyDepositAddress(data.deposit.address)
 		},
 	})
@@ -106,24 +104,51 @@ function Home() {
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
-    if (value && !Number.isNaN(Number.parseFloat(value))) {
-      const amount = Number.parseFloat(value)
-      const received = amount * (rate.data?.rate ?? 1)
-      setReceiveAmount(
-        received.toLocaleString('en-US', {
-          maximumFractionDigits: 2,
-        }),
-      )
-    } else {
-      setReceiveAmount('')
-    }
   }
 
+	const channel = fiat?.country === 'NG' ? 'BANK' : 'MOBILEMONEY'
+	const payoutLimit = fiat ? coverage.data[fiat.country]?.[channel] : undefined
+	const parsedSendAmount = Number.parseFloat(sendAmount)
+	const amountUsd = quote.data?.source.amount_usd ?? (Number.isNaN(parsedSendAmount) ? undefined : parsedSendAmount)
+	const amountError =
+		payoutLimit && typeof amountUsd === 'number'
+			? amountUsd < payoutLimit.min
+				? `Minimum amount is $${payoutLimit.min.toLocaleString('en-US')}`
+				: amountUsd > payoutLimit.max
+					? `Maximum amount is $${payoutLimit.max.toLocaleString('en-US')}`
+					: null
+			: null
+
+	useEffect(() => {
+		if (sendAmount && !Number.isNaN(Number.parseFloat(sendAmount)) && rate.data?.rate && !amountError) {
+			const amount = Number.parseFloat(sendAmount)
+			const received = amount * rate.data.rate
+			setReceiveAmount(
+				received.toLocaleString('en-US', {
+					maximumFractionDigits: 2,
+				}),
+			)
+		} else {
+			setReceiveAmount('')
+		}
+	}, [sendAmount, rate.data?.rate, amountError])
+
+	useEffect(() => {
+		if (!sendAmount || !sendToken || !fiat || Number.isNaN(Number.parseFloat(sendAmount)) || amountError) return
+		const timeout = setTimeout(() => {
+			quote.mutate({
+				asset: sendToken.id,
+				amount: Number.parseFloat(sendAmount),
+				country: fiat.country,
+				currency: fiat.currency,
+			})
+		}, 600)
+		return () => clearTimeout(timeout)
+	}, [sendAmount, sendToken, fiat, amountError])
+
   const handleSwap = async () => {
-		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data || !fiat) return
+		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data || !fiat || !rate.data?.rate || amountError) return
 		const amount = Number.parseFloat(sendAmount)
-		const receivingAmount = amount * (rate.data?.rate ?? 1)
-		console.log(`Amounts, send, receive, fiat, bank`, sendAmount, amount, receivingAmount, receiveAmount, fiat, selectedBank)
 
 		if (fiat.country === "NG") {
 			initiate.mutate({
@@ -149,19 +174,40 @@ function Home() {
 
   }
 
-  console.log(`Address`, { address })
-
   return (
     <>
       <div className="w-full max-w-full px-4">
-        <div className="grid gap-2 rounded-2xl p-2 shadow-2xl overflow-hidden bg-primary-foreground/5 mb-3">
+        <div className="mb-5 text-center">
+          <h1 className="text-2xl font-semibold text-foreground flex flex-wrap items-center justify-center gap-x-2">
+            {['Pay', 'anyone,', 'anywhere.'].map((word, i) => (
+              <motion.span
+                key={word}
+                initial={{ y: -40, x: (i - 1) * 24, rotate: (i - 1) * 18 - 10, opacity: 0 }}
+                animate={{ y: 0, x: 0, rotate: 0, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 120, damping: 14, mass: 1.1, delay: i * 0.15 }}
+                className="inline-block"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            With your stablecoin, you can payout any local currency in seconds. No sign up, non-custodial.
+          </p>
+        </div>
+
+        <div className="grid gap-2 rounded-xl p-2 border border-border overflow-hidden bg-card mb-3">
           <div className="relative grid gap-1">
             <SendComponent
               handleSendAmountChange={handleSendAmountChange}
               sendAmount={sendAmount}
               setIsTokenModalOpen={setIsTokenModalOpen}
 							sendToken={sendToken}
+              usdValue={quote.data?.source.amount_usd}
+              isUsdLoading={quote.isPending}
+              fiat={fiat}
               rate={rate.data?.rate}
+              amountError={amountError}
             />
             <MiddleToggle />
             <ReceiveComponent
@@ -171,6 +217,7 @@ function Home() {
               setIsFiatModalOpen={setIsFiatModalOpen}
               fiat={fiat}
               rate={rate.data?.rate}
+              isRateLoading={rate.isPending}
             />
           </div>
 
@@ -190,7 +237,7 @@ function Home() {
             onClick={handleSwap}
             size="lg"
             disabled={
-              !sendAmount || !selectedBank || !accountNumber || initiate.isPending
+              !sendAmount || !selectedBank || !accountNumber || initiate.isPending || Boolean(amountError)
             }
             className="w-full max-h-18 h-full bg-accent text-secondary font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
           >
@@ -203,34 +250,62 @@ function Home() {
           </Button>
         )}
         {address && (
-          <div className="bg-secondary text-primary rounded-xl p-4 border border-primary/20 flex items-center justify-between shadow-sm">
-            <div className="">
-              <h3 className="m-0! text-primary text-sm font-semibold">
-                Transfer {sendAmount}{' '}
-                {sendToken?.code.toUpperCase()} to
-              </h3>
-              <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">{address}</span>
+          <div className="bg-secondary text-primary rounded-xl p-5 border border-border">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-1">
+                  Send exactly
+                </p>
+                <h3 className="m-0! text-primary text-xl font-bold">
+                  {sendAmount} {sendToken?.code.toUpperCase()}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  to the address below
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="default"
+                  size="icon-sm"
+                  className="bg-accent rounded-xl"
+                  onClick={() => setIsQrModalOpen(true)}
+                  aria-label="Show QR code"
+                >
+                  <QrCode />
+                </Button>
+              </div>
             </div>
-						<div className="flex items-center gap-1">
-							<CopyButton content={address} className="bg-accent rounded-full" size="icon-sm" />
-              <Button
-                variant="default"
-                size="icon-sm"
-                className="bg-accent rounded-full"
-                onClick={() => setIsQrModalOpen(true)}
-                aria-label="Show QR code"
-              >
-                <QrCode />
-              </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(address)
+                toast.success('Address copied')
+              }}
+              className="mt-4 w-full flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3 text-left hover:bg-primary-foreground/10 transition-colors"
+            >
+              <span className="font-mono text-sm truncate">{address}</span>
+              <Copy className="size-4 text-muted-foreground shrink-0" />
+            </button>
+
+            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+              {reference && (
+                <span>Reference: <span className="font-mono">{reference}</span></span>
+              )}
+              {quote.data?.settlement && (
+                <span>Settles in {quote.data.settlement} after deposit</span>
+              )}
             </div>
+
+            {expiry && (
+              <p className="mt-2 text-xs font-medium">
+                <QuoteCountdown expiry={expiry} />
+              </p>
+            )}
           </div>
 				)}
-				{quote.data && (
-					<div className='flex items-center justify-between'>
-						<span>Swap {sendAmount} {sendToken?.code.toUpperCase()} to {receiveAmount} {receiveCurrency?.symbol}</span>
-						<span>Estimated time: <b>1 minute, 30 seconds</b></span>
-					</div>
-        )}
+
+        <WaitlistSignup />
       </div>
 
       <TokenSelectorModal

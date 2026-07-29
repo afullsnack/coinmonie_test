@@ -10,7 +10,7 @@ export function MiddleToggle() {
         size="icon-lg"
 				onClick={() => {
 				}}
-				className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+				className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
 			>
 				<ArrowUpDownIcon className="w-5 h-5 text-accent" />
 			</Button>

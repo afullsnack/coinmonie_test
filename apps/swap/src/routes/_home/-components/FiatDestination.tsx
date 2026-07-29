@@ -28,7 +28,7 @@ const FiatDestination = ({
 				<Button
 					size="xs"
           onClick={() => setIsBankModalOpen(true)}
-					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-lg", {
+					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-xl", {
 						"animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsBank,
           })}
 				>
@@ -40,8 +40,8 @@ const FiatDestination = ({
               </AvatarFallback>
             </Avatar>
 					)}
-						{selectedbank && fiat && <span className='max-w-[120px] line-clamp-2 text-ellipsis'>{selectedbank?.name}</span>}
-						{!selectedbank && fiat && <span className='max-w-[120px] line-clamp-2 text-ellipsis'>{fiat.country === "NG"? 'Choose bank' : 'Choose carier'}</span>}
+						{selectedbank && fiat && <span className='max-w-30 line-clamp-2 text-ellipsis'>{selectedbank?.name}</span>}
+						{!selectedbank && fiat && <span className='max-w-30 line-clamp-2 text-ellipsis'>{fiat.country === "NG"? 'Choose bank' : 'Choose carrier'}</span>}
 						{' '}
           <ChevronDown className="size-4" />
         </Button>
@@ -51,8 +51,7 @@ const FiatDestination = ({
         value={accountNumber}
 				onChange={(e) => onAccountNumberChange(e.target.value)}
 				placeholder={fiat?.country === "NG"? 'Account number' : 'Mobile number'}
-				max={10}
-				maxLength={10}
+				maxLength={fiat?.mobileLength ?? 10}
         className={cn(
           defaultInputStyle,
           'text-primary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent placeholder:text-gray-400 placeholder:text-sm font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none selection:bg-accent selection:text-secondary',
