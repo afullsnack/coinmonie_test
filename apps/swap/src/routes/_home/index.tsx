@@ -23,7 +23,10 @@ import { toast } from 'sonner'
 export const Route = createFileRoute('/_home/')({ component: Home })
 
 function Home() {
-	const queryClient = useRouteContext({from: "/_home/", select: (c) => c.queryClient})
+  const queryClient = useRouteContext({
+    from: '/_home/',
+    select: (c) => c.queryClient,
+  })
   const [sendToken, setSendToken] = useState<Asset | null>(null)
   const currencies = useQuery(enabledCurrenciesQueryOptions)
   const assets = useQuery(assetListQueryOptions)
@@ -172,6 +175,27 @@ function Home() {
 			})
 		}
 
+    if (fiat.country === 'NG') {
+      initiate.mutate({
+        asset: sendToken?.id || '',
+        amount: Math.round(amount),
+        bankCode: bankLookup.data.bank_code,
+        accountName: bankLookup.data.account_name,
+        accountNumber: bankLookup.data.account_number,
+        country: fiat.country,
+        currency: fiat.currency,
+      })
+    } else {
+      initiate.mutate({
+        asset: sendToken?.id || '',
+        amount: Math.round(amount),
+        accountName: bankLookup.data.account_name,
+        mobileNetwork: bankLookup.data.mobile_network,
+        mobileNumber: bankLookup.data.phone_number,
+        country: fiat.country,
+        currency: fiat.currency,
+      })
+    }
   }
 
   return (
@@ -225,9 +249,9 @@ function Home() {
             setIsBankModalOpen={setIsBankModalOpen}
             selectedbank={selectedBank}
             accountNumber={accountNumber}
-						onAccountNumberChange={setAccountNumber}
-						accountName={bankLookup.data?.account_name}
-						isFetching={bankLookup.isPending}
+            onAccountNumberChange={setAccountNumber}
+            accountName={bankLookup.data?.account_name}
+            isFetching={bankLookup.isPending}
             fiat={fiat}
           />
         </div>
@@ -241,12 +265,21 @@ function Home() {
             }
             className="w-full max-h-18 h-full bg-accent text-secondary font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
           >
-            {!sendToken? 'Choose asset to send' : !accountNumber ? 'Enter account number' : ''}
-            {accountNumber && sendToken && !initiate.isPending && 'Create transfer'}
-						{accountNumber && sendToken && initiate.isPending && <>
-							<Loader2 className='animate-spin' />
-							<span>Creating transfer...</span>
-            </>}
+            {!sendToken
+              ? 'Choose asset to send'
+              : !accountNumber
+                ? 'Enter account number'
+                : ''}
+            {accountNumber &&
+              sendToken &&
+              !initiate.isPending &&
+              'Create transfer'}
+            {accountNumber && sendToken && initiate.isPending && (
+              <>
+                <Loader2 className="animate-spin" />
+                <span>Creating transfer...</span>
+              </>
+            )}
           </Button>
         )}
         {address && (
@@ -311,18 +344,18 @@ function Home() {
       <TokenSelectorModal
         open={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-				onSelect={setSendToken}
+        onSelect={setSendToken}
         onNetworkSelect={setSelectedNetwork}
-				sendToken={sendToken}
-				selectedNetwork={selectedNetwork}
-			/>
+        sendToken={sendToken}
+        selectedNetwork={selectedNetwork}
+      />
 
-			<FiatSelectorModal
-				onClose={() => setIsFiatModalOpen(false)}
-				open={isFiatModalOpen}
-				onFiatSelect={setFiat}
-				selectedFiat={fiat}
-			/>
+      <FiatSelectorModal
+        onClose={() => setIsFiatModalOpen(false)}
+        open={isFiatModalOpen}
+        onFiatSelect={setFiat}
+        selectedFiat={fiat}
+      />
 
 			{fiat && (
         <BankSelectorModal

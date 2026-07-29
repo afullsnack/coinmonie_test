@@ -101,7 +101,8 @@ export const assetListQueryOptions = queryOptions({
 
 export const getHistoryQueryOptions = (depositAddresses: string[]) => queryOptions({
   retryOnMount: true,
-  refetchOnWindowFocus: true,
+	refetchOnWindowFocus: true,
+	refetchOnMount: 'always',
   gcTime: 30_000_000,
   queryKey: ['getHistory', depositAddresses],
   queryFn: async () => {

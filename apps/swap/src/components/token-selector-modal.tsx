@@ -50,10 +50,10 @@ export function TokenSelectorModal({
   onNetworkSelect,
 	sendToken,
 }: TokenSelectorModalProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const [searchNetwork, setSearchNetwork] = useState('')
   const [searchToken, setSearchToken] = useState('')
   const assetList = useQuery(assetListQueryOptions)
-  const isMobile = useMediaQuery('(max-width: 768px)')
 
   const networks: Array<Network> = Object.values(
     assetList.data.reduce((acc, { blockchain }) => {
