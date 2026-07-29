@@ -8,11 +8,11 @@ export interface Token {
 }
 
 export interface Bank {
-	id: number;
+	id: number | string;
 	name: string;
 	code: string;
-	category: string;
-	logo: string;
+	category?: string;
+	logo?: string;
 }
 
 export type Network = {
@@ -42,13 +42,13 @@ export type Asset = {
 
 
 export const LOCAL = [
-	{ currency: "NGN", country: "NG", name: "Nigerian Naira", url: `/nigeria.png` },
-	{ currency: "GHS", country: "GH", name: "Ghanaian Cedi", url: `/ghana.png` },
-	{ currency: "KES", country: "KE", name: "Kenyan Shilings", url: `/kenya.png` },
-	{ currency: "GMD", country: "GM", name: "Gambian Dalasi", url: `gambia.png` },
-	{ currency: "XAF", country: "GA", name: "Garbon (Franc)", url: `garbon.png` },
-	{ currency: "XOF", country: "SN", name: "Senegal (Franc)", url: `senegal.png` },
-	{ currency: "XOF", country: "CI", name: "Ivory Coast (Franc)", url: `ivory-coast.png` },
+	{ currency: "NGN", country: "NG", name: "Nigerian Naira", url: `/nigeria.png`, mobileLength: 10 },
+	{ currency: "GHS", country: "GH", name: "Ghanaian Cedi", url: `/ghana.png`, mobileLength: 9 },
+	{ currency: "KES", country: "KE", name: "Kenyan Shilings", url: `/kenya.png`, mobileLength: 9 },
+	{ currency: "GMD", country: "GM", name: "Gambian Dalasi", url: `gambia.png`, mobileLength: 7 },
+	{ currency: "XAF", country: "GA", name: "Garbon (Franc)", url: `garbon.png`, mobileLength: 8 },
+	{ currency: "XOF", country: "SN", name: "Senegal (Franc)", url: `senegal.png`, mobileLength: 9 },
+	{ currency: "XOF", country: "CI", name: "Ivory Coast (Franc)", url: `ivory-coast.png`, mobileLength: 10 },
 ];
 
 export type Fiat = {
@@ -56,6 +56,7 @@ export type Fiat = {
 	country: string;
 	name: string;
 	url: string;
+	mobileLength: number;
 }
 
 export interface Transaction {

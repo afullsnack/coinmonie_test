@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, SearchIcon } from 'lucide-react'
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { LOCAL } from '@/data/constants'
-import type {Asset, Fiat} from '@/data/constants'
+import type { Fiat } from '@/data/constants'
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
 import {
   Item,
@@ -21,8 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { useMediaQuery } from '#/hooks/use-media-query'
-import { useQuery } from '@tanstack/react-query'
-import { assetListQueryOptions } from '#/lib/api-client'
 
 interface FiatSelectorModalProps {
   open: boolean
@@ -39,8 +37,7 @@ export function FiatSelectorModal({
   onFiatSelect,
 }: FiatSelectorModalProps) {
   const [searchFiat, setSearchFiat] = useState('')
-  const assetList = useQuery(assetListQueryOptions)
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  // const isMobile = useMediaQuery('(max-width: 768px)')
 
   const filteredFiats = LOCAL.filter((fiat) => {
     const matchesSearch =
@@ -49,6 +46,12 @@ export function FiatSelectorModal({
       fiat.country.toLowerCase().includes(searchFiat.toLowerCase())
     return matchesSearch
   })
+
+  useEffect(() => {
+    if (!open) {
+      setSearchFiat('')
+    }
+  }, [open])
 
   if (!open) return null
 
@@ -66,7 +69,7 @@ export function FiatSelectorModal({
           <DialogTitle className="text-left text-2xl lg:text-lg">
             Select local currency
           </DialogTitle>
-          <DialogDescription className='text-left'>
+          <DialogDescription className="text-left">
             Select option from list or search
           </DialogDescription>
           <InputGroup>
@@ -103,7 +106,7 @@ export function FiatSelectorModal({
                   <ItemTitle>{fiat.currency}</ItemTitle>
                 </ItemContent>
                 {selectedFiat?.country === fiat.country && (
-                  <ItemActions className='flex-1 justify-end'>
+                  <ItemActions className="flex-1 justify-end">
                     <Button
                       variant="default"
                       size="icon-sm"

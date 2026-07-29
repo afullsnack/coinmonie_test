@@ -2,6 +2,7 @@ import { mutationOptions, queryOptions } from '@tanstack/react-query'
 import {
   assetList,
   bankLookup,
+  getInstitution,
   getQuote,
   getRate,
   history,
@@ -44,15 +45,19 @@ type Roi = {
   percentage: number
 }
 
-export const bankListQueryOptions = queryOptions({
+export const bankListQueryOptions = (country: string) => queryOptions({
   retryOnMount: true,
   refetchOnWindowFocus: true,
-  gcTime: 30_000_000,
   queryKey: ['bankList'],
   queryFn: async () => {
-    try {
-      const list = (await import('@/data/banks/nigeria.json')).default
-      return list.banks
+		try {
+			if (country === "NG") {
+	      const list = (await import('@/data/banks/nigeria.json')).default
+	      return list.banks
+			} else {
+				const result = await getInstitution({ data: { country } })
+				return result
+			}
     } catch (error: any) {
       console.log(`Failed to fetch bank list`, { error })
       throw error
@@ -83,13 +88,15 @@ export const getHistoryQueryOptions = queryOptions({
 
 export const offrampRateMutationOptions = mutationOptions({
   mutationKey: ['getOfframpRate'],
-  mutationFn: async (values: { asset: string }) =>
+	mutationFn: async (values: { asset: string; country: string; currency: string }) =>
     getRate({
       data: {
-        asset: values.asset,
+				asset: values.asset,
+				country: values.country,
+				currency: values.currency,
       },
     }),
-  onError(error, variables, onMutateResult, context) {
+  onError(error) {
     toast.error(`Failed to get rate`, {
       description: error.message,
     })
@@ -98,14 +105,21 @@ export const offrampRateMutationOptions = mutationOptions({
 
 export const offrampQuoteMutationOptions = mutationOptions({
   mutationKey: ['getQuote'],
-  mutationFn: async (values: { asset: string; amount: number }) =>
+	mutationFn: async (values: {
+		asset: string;
+		amount: number;
+		country: string;
+		currency: string;
+	}) =>
     getQuote({
       data: {
         asset: values.asset,
-        amount: values.amount,
+				amount: values.amount,
+				country: values.country,
+				currency: values.currency,
       },
     }),
-  onError(error, variables, onMutateResult, context) {
+  onError(error, ) {
     toast.error(`Failed to get quote`, {
       description: error.message,
     })
@@ -117,9 +131,13 @@ export const initiateOfframpMutationOptions = mutationOptions({
   mutationFn: async (values: {
     asset: string
     amount: number
-    accountName: string
-    accountNumber: string
-    bankCode: string
+    accountName?: string
+    accountNumber?: string
+		bankCode?: string
+		country: string;
+		currency: string;
+		mobileNumber?: string;
+		mobileNetwork?: string;
   }) =>
     initiateOffer({
       data: {
@@ -127,10 +145,14 @@ export const initiateOfframpMutationOptions = mutationOptions({
         amount: values.amount,
         accountName: values.accountName,
         accountNumber: values.accountNumber,
-        bankCode: values.bankCode,
+				bankCode: values.bankCode,
+				country: values.country,
+				currency: values.currency,
+				mobileNumber: values.mobileNumber,
+				mobileNetwork: values.mobileNetwork,
       },
     }),
-  onError(error, variables, onMutateResult, context) {
+  onError(error) {
     toast.error(`Failed to create transfer`, {
       description: error.message,
     })
@@ -139,11 +161,23 @@ export const initiateOfframpMutationOptions = mutationOptions({
 
 export const bankLookUpMutationOptions = mutationOptions({
   mutationKey: ['bankLookup'],
-  mutationFn: async (values: { bankCode: string; accountNumber: string }) =>
+	mutationFn: async (values: {
+		bankCode?: string;
+		accountNumber?: string;
+		mobileNetwork?: string;
+		phoneNumber?: string;
+		country: string
+	}) =>
     await bankLookup({
-      data: { accountNumber: values.accountNumber, bankCode: values.bankCode },
+			data: {
+				accountNumber: values.accountNumber,
+				bankCode: values.bankCode,
+				country: values.country,
+				mobileNetwork: values.mobileNetwork,
+				phoneNumber: values.phoneNumber,
+			},
     }),
-  onError(error, variables, onMutateResult, context) {
+  onError(error) {
     toast.error(`Could not get destination bank`, {
       description: error.message,
     })

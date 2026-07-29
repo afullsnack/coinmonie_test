@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouteContext } from '@tanstack/react-router'
 import { Copy, Loader2, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
-import type { Asset, Bank, Fiat, Network } from '#/data/constants'
+import { LOCAL } from '#/data/constants'
+import type {Asset, Bank, Fiat, Network} from "#/data/constants"
 import { bankLookUpMutationOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
@@ -22,8 +23,9 @@ const BASE_ASSET = 'NGN'
 const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
+	const queryClient = useRouteContext({from: "/_home/", select: (c) => c.queryClient})
   const [sendToken, setSendToken] = useState<Asset | null>(null)
-  const [fiat, setFiat] = useState<Fiat | null>(null)
+  const [fiat, setFiat] = useState<Fiat>(LOCAL[0])
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [receiveCurrency, setReceiveCurrency] = useState<{
     id: string
@@ -50,19 +52,36 @@ function Home() {
 	const bankLookup = useMutation(bankLookUpMutationOptions)
 
 	useEffect(() => {
-		console.log(`Account number`, {accountNumber})
-		if (accountNumber && accountNumber.length === 10) {
-			bankLookup.mutate({
-				bankCode: selectedBank?.code || '',
-				accountNumber: accountNumber,
-			})
+		console.log(`Account number`, {accountNumber, length: accountNumber.length})
+		if (accountNumber && accountNumber.length >= fiat.mobileLength) {
+			if (fiat.country === "NG") {
+				bankLookup.mutate({
+					bankCode: selectedBank?.code || '',
+					accountNumber: accountNumber,
+					country: fiat.country,
+				})
+			} else {
+				bankLookup.mutate({
+					phoneNumber: accountNumber,
+					country: fiat.country,
+					mobileNetwork: selectedBank?.code
+				})
+			}
 		}
 	}, [accountNumber])
 
 	useEffect(() => {
-		if (sendToken && fiat) {
-			rate.mutate({asset: sendToken.id})
+		if (sendToken) {
+			rate.mutate({
+				asset: sendToken.id,
+				country: fiat.country,
+				currency: fiat.currency
+			})
 		}
+		setAccountNumber('')
+		setSelectedBank(null)
+		bankLookup.reset()
+		queryClient.invalidateQueries({queryKey: ['bankList']})
 	}, [sendToken, fiat])
 
   const handleSendAmountChange = (value: string) => {
@@ -125,7 +144,8 @@ function Home() {
             accountNumber={accountNumber}
 						onAccountNumberChange={setAccountNumber}
 						accountName={bankLookup.data?.account_name}
-            isFetching={bankLookup.isPending}
+						isFetching={bankLookup.isPending}
+            fiat={fiat}
           />
         </div>
 
@@ -195,7 +215,8 @@ function Home() {
         open={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
         onSelect={setSelectedBank}
-        selectedBank={selectedBank}
+				selectedBank={selectedBank}
+        fiat={fiat}
       />
     </>
   )

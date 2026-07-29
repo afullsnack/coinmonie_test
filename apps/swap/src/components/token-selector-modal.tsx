@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, SearchIcon } from 'lucide-react'
 import {
   Dialog,
@@ -78,7 +78,14 @@ export function TokenSelectorModal({
       ? token.blockchain.id === selectedNetwork.id
       : true
     return matchesSearch && matchesNetwork
-  })
+	})
+
+  useEffect(() => {
+		if (!open) {
+			setSearchNetwork('')
+			setSearchToken('')
+		}
+	}, [open])
 
   if (!open) return null
 

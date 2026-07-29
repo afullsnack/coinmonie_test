@@ -96,6 +96,9 @@ export const getInstitution = createServerFn()
 					[key: string]: any
 				}>
 			}>(`${SWITCH_API_URL}/institution`, {
+				headers: {
+					'x-service-key': env.SWITCH_API_KEY
+				},
 				query: {
 					country: data.country
 				}
@@ -106,7 +109,11 @@ export const getInstitution = createServerFn()
 				throw error
 			}
 
-			return result.data
+			return result.data.map((d) => ({
+				...d,
+				id: d.code,
+				logo: undefined
+			}))
 		}
 		catch (error: any) {
 			console.log(`Failed to get institution`, { error })

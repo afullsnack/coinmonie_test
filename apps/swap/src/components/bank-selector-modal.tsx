@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, SearchIcon } from 'lucide-react'
-import type { Bank } from '@/data/constants'
+import type { Bank, Fiat } from '@/data/constants'
 import {
   Dialog,
   DialogContent,
@@ -26,31 +26,39 @@ interface BankSelectorModalProps {
   open: boolean
   onClose: () => void
   onSelect: (bank: Bank) => void
-  selectedBank: Bank | null
+	selectedBank: Bank | null
+  fiat: Fiat
 }
 
 export function BankSelectorModal({
   open,
   onClose,
   onSelect,
-  selectedBank,
+	selectedBank,
+  fiat,
 }: BankSelectorModalProps) {
   const [search, setSearch] = useState('')
-  const bankList = useQuery(bankListQueryOptions)
+  const bankList = useQuery(bankListQueryOptions(fiat.country))
 
   const filteredBanks = bankList.data.filter(
     (bank) =>
       bank.name.toLowerCase().includes(search.toLowerCase()) ||
-      bank.category.toLowerCase().includes(search.toLowerCase()),
+      bank.code.toLowerCase().includes(search.toLowerCase()),
   )
+
+	useEffect(() => {
+		if (!open) {
+			setSearch('')
+		}
+	}, [open])
 
   if (!open) return null
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(open: boolean) => {
-        if (!open) {
+      onOpenChange={(openVal: boolean) => {
+        if (!openVal) {
           onClose()
         }
       }}
@@ -58,13 +66,13 @@ export function BankSelectorModal({
       <DialogContent className="overflow-hidden">
         <div className="flex flex-col items-start justify-start gap-3">
           <DialogHeader>
-            <DialogTitle className="text-left text-2xl lg:text-lg">Choose a bank</DialogTitle>
+            <DialogTitle className="text-left text-2xl lg:text-lg">{(fiat.country === "NG")? 'Choose a bank' : 'Choose a carier'}</DialogTitle>
             <DialogDescription>
               Select option from list or search
             </DialogDescription>
           </DialogHeader>
           <InputGroup>
-            <InputGroupInput placeholder="Search bank" onChange={(e) => setSearch(e.target.value)} />
+            <InputGroupInput placeholder={(fiat.country === "NG")? "Search bank" : "Search carier"} onChange={(e) => setSearch(e.target.value)} />
             <InputGroupAddon>
               <SearchIcon />
             </InputGroupAddon>
@@ -95,7 +103,7 @@ export function BankSelectorModal({
                   <ItemTitle>{bank.name}</ItemTitle>
                 </ItemContent>
                 {selectedBank?.id === bank.id && (
-                  <ItemActions>
+                  <ItemActions className='flex-1 justify-end'>
                     <Button
                       variant="default"
                       size="icon-sm"

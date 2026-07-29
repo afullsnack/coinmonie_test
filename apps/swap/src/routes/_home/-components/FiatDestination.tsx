@@ -5,11 +5,9 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '#/components/ui/input-group'
-import { bankLookUpMutationOptions } from '#/lib/api-client';
 import { cn, defaultInputStyle } from '#/lib/utils';
-import { useMutation } from '@tanstack/react-query';
 import { ChevronDown, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+// import { useState } from 'react';
 
 const FiatDestination = ({
 	setIsBankModalOpen,
@@ -18,8 +16,9 @@ const FiatDestination = ({
 	onAccountNumberChange,
 	accountName,
 	isFetching,
+	fiat,
 }: any) => {
-	const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
+	// const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
 
 	return (
 		<>
@@ -40,7 +39,9 @@ const FiatDestination = ({
               </AvatarFallback>
             </Avatar>
 					)}
-          <span className='max-w-[120px] line-clamp-2 text-ellipsis'>{selectedbank ? selectedbank?.name : 'Choose bank'}</span>{' '}
+						{selectedbank && fiat && <span className='max-w-[120px] line-clamp-2 text-ellipsis'>{selectedbank?.name}</span>}
+						{!selectedbank && fiat && <span className='max-w-[120px] line-clamp-2 text-ellipsis'>{fiat.country === "NG"? 'Choose bank' : 'Choose carier'}</span>}
+						{' '}
           <ChevronDown className="size-4" />
         </Button>
       </InputGroupAddon>
@@ -48,7 +49,7 @@ const FiatDestination = ({
         type="number"
         value={accountNumber}
 				onChange={(e) => onAccountNumberChange(e.target.value)}
-				placeholder='Account number'
+				placeholder={fiat?.country === "NG"? 'Account number' : 'Mobile number'}
 				max={10}
 				maxLength={10}
         className={cn(
