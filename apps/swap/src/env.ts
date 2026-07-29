@@ -6,6 +6,7 @@ export const env = createEnv({
 		SERVER_URL: z.string().url().optional(),
 		SWITCH_API_URL: z.string().url(),
 		SWITCH_API_KEY: z.string(),
+		BETTER_AUTH_SECRET: z.string().min(32),
 		NODE_ENV: z.string(),
 		FEATURE_FLAG_TRANSACTION_HISTORY: z
 			.string()
