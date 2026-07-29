@@ -11,8 +11,6 @@ export const Route = createFileRoute('/_home')({
 function RouteComponent() {
   const matchHome = useRouterState({ select: (s) => s.matches.some((m) => m.routeId === "/_home/") })
 
-  console.log(`Using router state to match home`, { matchHome })
-
   return (
     <Main className="min-h-screen flex flex-col bg-secondary selection:bg-accent selection:text-secondary">
       <Section className='p-0!'>

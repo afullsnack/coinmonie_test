@@ -20,6 +20,7 @@ import FiatDestination from './-components/FiatDestination'
 import { useMutation } from '@tanstack/react-query'
 import CopyButton from '#/components/ui/copy-button'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
+import { QrCodeModal } from '#/components/qrcode-address-modal'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -46,7 +47,9 @@ function Home() {
   const [accountNumber, setAccountNumber] = useState('')
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isFiatModalOpen, setIsFiatModalOpen] = useState(false)
-  const [isBankModalOpen, setIsBankModalOpen] = useState(false)
+	const [isBankModalOpen, setIsBankModalOpen] = useState(false)
+	const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false)
+
   const [address, setAddress] = useState<string | null>(null)
   const rate = useMutation(offrampRateMutationOptions)
   const quote = useMutation(offrampQuoteMutationOptions)
@@ -163,8 +166,6 @@ function Home() {
     }
   }
 
-  console.log(`Address`, { address })
-
   return (
     <>
       <div className="w-full max-w-full px-4">
@@ -247,7 +248,8 @@ function Home() {
               <Button
                 variant="default"
                 size="icon-sm"
-                className="bg-accent rounded-full"
+								className="bg-accent rounded-full"
+								onClick={() => setQrCodeModalOpen(true)}
               >
                 <QrCode />
               </Button>
@@ -289,7 +291,12 @@ function Home() {
         onSelect={setSelectedBank}
         selectedBank={selectedBank}
         fiat={fiat}
-      />
+			/>
+			<QrCodeModal
+				address={address || ''}
+				open={qrCodeModalOpen}
+				onClose={() => setQrCodeModalOpen(false)}
+			/>
     </>
   )
 }
