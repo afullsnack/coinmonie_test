@@ -18,8 +18,10 @@ import {
   addAdmin,
   changeOwnPassword,
   deleteAdmin,
+  getDeveloperFeeSettings,
   listAdmins,
   resetAdminPassword,
+  updateDeveloperFeeSettings,
 } from '#/server/admin.functions'
 import { adminListWaitlist, joinWaitlist } from '#/server/waitlist.functions'
 import { showErrorDialog } from '#/lib/error-dialog-store'
@@ -145,6 +147,20 @@ export const adminStatsQueryOptions = queryOptions({
 export const adminListQueryOptions = queryOptions({
   queryKey: ['admin', 'admins'],
   queryFn: async () => await listAdmins(),
+})
+
+export const developerFeeSettingsQueryOptions = queryOptions({
+  queryKey: ['admin', 'developerFeeSettings'],
+  queryFn: async () => await getDeveloperFeeSettings(),
+})
+
+export const updateDeveloperFeeSettingsMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'updateDeveloperFeeSettings'],
+  mutationFn: async (values: { enabled: boolean; percent: number }) =>
+    await updateDeveloperFeeSettings({ data: values }),
+  onError(error) {
+    showErrorDialog(errorMessage(error, 'Failed to update developer fee.'))
+  },
 })
 
 export const adminWebhookConfigQueryOptions = queryOptions({

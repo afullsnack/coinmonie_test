@@ -1,12 +1,35 @@
 import { db } from '#/db'
-import { account, user } from '#/db/schema'
+import { account, appSettings, user } from '#/db/schema'
 import { requireAdminSession, requireSuperAdminSession, isSuperAdmin } from '#/lib/require-admin-session'
+import { getDeveloperFee, DEVELOPER_FEE_ENABLED_KEY, DEVELOPER_FEE_PERCENT_KEY } from '#/lib/developer-fee'
 import { hashPassword } from 'better-auth/crypto'
 import { createServerFn } from '@tanstack/react-start'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 const ADMIN_EMAIL_DOMAIN = '@coinmonie.com'
+
+export const getDeveloperFeeSettings = createServerFn({ method: 'GET' })
+	.handler(async () => {
+		await requireAdminSession()
+		return await getDeveloperFee()
+	})
+
+export const updateDeveloperFeeSettings = createServerFn({ method: 'POST' })
+	.validator(z.object({ enabled: z.boolean(), percent: z.number().min(0).max(100) }))
+	.handler(async ({ data }) => {
+		await requireSuperAdminSession()
+
+		await db.insert(appSettings)
+			.values({ key: DEVELOPER_FEE_ENABLED_KEY, value: String(data.enabled) })
+			.onConflictDoUpdate({ target: appSettings.key, set: { value: String(data.enabled) } })
+
+		await db.insert(appSettings)
+			.values({ key: DEVELOPER_FEE_PERCENT_KEY, value: String(data.percent) })
+			.onConflictDoUpdate({ target: appSettings.key, set: { value: String(data.percent) } })
+
+		return { success: true }
+	})
 
 export const listAdmins = createServerFn({ method: 'GET' })
 	.handler(async () => {

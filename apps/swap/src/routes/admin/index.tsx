@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   adminListQueryOptions,
   adminStatsQueryOptions,
@@ -8,10 +8,14 @@ import {
   adminWaitlistQueryOptions,
   adminWebhookConfigQueryOptions,
   adminWebhookEventsQueryOptions,
+  developerFeeSettingsQueryOptions,
+  updateDeveloperFeeSettingsMutationOptions,
 } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
 import { Badge } from '#/components/ui/badge'
+import { Switch } from '#/components/ui/switch'
+import { Input } from '#/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '#/components/ui/input-group'
 import { SearchIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -106,6 +110,76 @@ function WebhookEventsList({ reference }: { reference: string }) {
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+function DeveloperFeeCard({ canManage }: { canManage: boolean }) {
+  const queryClient = useQueryClient()
+  const settings = useQuery(developerFeeSettingsQueryOptions)
+  const [enabled, setEnabled] = useState(false)
+  const [percent, setPercent] = useState('0')
+
+  useEffect(() => {
+    if (settings.data) {
+      setEnabled(settings.data.enabled)
+      setPercent(String(settings.data.percent))
+    }
+  }, [settings.data])
+
+  const update = useMutation({
+    ...updateDeveloperFeeSettingsMutationOptions,
+    onSuccess: () => {
+      toast.success('Developer fee updated')
+      queryClient.invalidateQueries({ queryKey: ['admin', 'developerFeeSettings'] })
+    },
+  })
+
+  const hasChanges = settings.data
+    && (enabled !== settings.data.enabled || Number(percent) !== settings.data.percent)
+
+  return (
+    <div className="rounded-xl p-4 bg-card border border-border md:col-span-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Developer fee</p>
+        {!canManage && (
+          <span className="text-xs text-muted-foreground">Read only</span>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <Switch checked={enabled} onCheckedChange={setEnabled} disabled={!canManage} />
+        <span className="text-sm text-foreground">{enabled ? 'Enabled' : 'Disabled'}</span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 max-w-xs">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          step="0.1"
+          value={percent}
+          onChange={(e) => setPercent(e.target.value)}
+          disabled={!canManage}
+          className="rounded-xl"
+        />
+        <span className="text-sm text-muted-foreground">%</span>
+      </div>
+
+      {canManage && (
+        <Button
+          size="sm"
+          className="mt-3 rounded-xl bg-accent text-accent-foreground"
+          disabled={!hasChanges || update.isPending}
+          onClick={() => update.mutate({ enabled, percent: Number(percent) })}
+        >
+          {update.isPending ? 'Saving...' : 'Save changes'}
+        </Button>
+      )}
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        Applied to Switch quotes and transfers when enabled. Takes effect immediately, no redeploy needed.
+      </p>
     </div>
   )
 }
@@ -221,6 +295,8 @@ function AdminDashboard() {
             </p>
           )}
         </div>
+
+        <DeveloperFeeCard canManage={admins.data?.canManage ?? false} />
       </div>
 
       <InputGroup className="mb-4 max-w-sm rounded-xl!">

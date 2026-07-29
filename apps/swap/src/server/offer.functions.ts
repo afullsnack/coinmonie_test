@@ -4,6 +4,7 @@ import { db } from '#/db'
 import { transactions } from '#/db/schema'
 import { requireAdminSession } from '#/lib/require-admin-session'
 import { enforceRateLimit } from '#/lib/rate-limit'
+import { getDeveloperFee } from '#/lib/developer-fee'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
@@ -332,6 +333,7 @@ export const getQuote = createServerFn()
   .handler(async ({ data }) => {
     await enforceRateLimit(getRequest(), 'getQuote', 40, 60_000)
     try {
+      const developerFee = await getDeveloperFee()
       const { data: quote, error } = await betterFetch<{
         success: boolean
         message: string
@@ -372,8 +374,8 @@ export const getQuote = createServerFn()
           country: data.country,
           currency: data.currency,
           exact_output: false,
-          ...(env.FEATURE_FLAG_DEVELOPER_FEE
-            ? { developer_fee: env.DEVELOPER_FEE_PERCENT }
+          ...(developerFee.enabled
+            ? { developer_fee: developerFee.percent }
             : {}),
         }),
       })
@@ -407,6 +409,7 @@ export const initiateOffer = createServerFn()
   .handler(async ({ data }) => {
     await enforceRateLimit(getRequest(), 'initiateOffer', 10, 60_000)
     try {
+      const developerFee = await getDeveloperFee()
       const { data: quote, error } = await betterFetch<{
         success: boolean
         message: string
@@ -466,8 +469,8 @@ export const initiateOffer = createServerFn()
 					},
 					sender_name: 'Coinmonie',
           reason: "REMITTANCE",
-          ...(env.FEATURE_FLAG_DEVELOPER_FEE
-            ? { developer_fee: env.DEVELOPER_FEE_PERCENT }
+          ...(developerFee.enabled
+            ? { developer_fee: developerFee.percent }
             : {}),
           ...(env.SERVER_URL ? { callback_url: `${env.SERVER_URL}/api/webhooks/switch` } : {}),
         }),
