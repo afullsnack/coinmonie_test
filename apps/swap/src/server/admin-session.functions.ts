@@ -9,9 +9,19 @@ export const getAdminSession = createServerFn({ method: 'GET' }).handler(async (
 		return { enabled: false as const, session: null }
 	}
 
-	await ensureAdminUser()
+	try {
+		await ensureAdminUser()
+	} catch (error) {
+		console.error('[getAdminSession] ensureAdminUser failed', error)
+		throw error
+	}
 
-	const request = getRequest()
-	const session = await auth.api.getSession({ headers: request.headers })
-	return { enabled: true as const, session }
+	try {
+		const request = getRequest()
+		const session = await auth.api.getSession({ headers: request.headers })
+		return { enabled: true as const, session }
+	} catch (error) {
+		console.error('[getAdminSession] auth.api.getSession failed', error)
+		throw error
+	}
 })

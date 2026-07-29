@@ -51,6 +51,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           echo "${{ secrets.DATABASE_URL }}" | npx wrangler secret put DATABASE_URL
+          echo "${{ secrets.SWITCH_API_URL }}" | npx wrangler secret put SWITCH_API_URL
           echo "${{ secrets.SWITCH_API_KEY }}" | npx wrangler secret put SWITCH_API_KEY
           echo "${{ secrets.ADMIN_EMAIL }}" | npx wrangler secret put ADMIN_EMAIL
           echo "${{ secrets.ADMIN_PASSWORD }}" | npx wrangler secret put ADMIN_PASSWORD

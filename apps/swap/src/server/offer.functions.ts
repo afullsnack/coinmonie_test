@@ -11,7 +11,12 @@ import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import {formatDistanceToNow} from "date-fns"
 
-const SWITCH_API_URL = `https://api.onswitch.xyz`
+const SWITCH_API_URL = env.SWITCH_API_URL
+
+function isMaskedName(name: string | undefined): boolean {
+	return Boolean(name?.includes('*'))
+}
+
 const FILES = [
   'arbitrum.jpeg',
   'avalanche.jpeg',
@@ -461,7 +466,7 @@ export const initiateOffer = createServerFn()
 					reference: crypto.randomUUID(),
 					beneficiary: {
 						holder_type: "INDIVIDUAL",
-						holder_name: data.accountName,
+						holder_name: isMaskedName(data.accountName) ? 'COINMONIE TRANSFER' : data.accountName,
 						account_number: data.accountNumber,
 						bank_code: data.bankCode,
 						mobile_number: data.mobileNumber,
