@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
+import { cn } from '#/lib/utils'
 
 interface TokenSelectorModalProps {
   open: boolean
@@ -38,7 +39,7 @@ interface TokenSelectorModalProps {
   onSelect: (token: Asset) => void
   onNetworkSelect: (network: Network) => void
   children?: React.ReactNode
-  sendToken: Asset | null
+	sendToken: Asset | null
 }
 
 export function TokenSelectorModal({
@@ -47,7 +48,7 @@ export function TokenSelectorModal({
   onClose,
   onSelect,
   onNetworkSelect,
-  sendToken,
+	sendToken,
 }: TokenSelectorModalProps) {
   const [searchNetwork, setSearchNetwork] = useState('')
   const [searchToken, setSearchToken] = useState('')
@@ -118,7 +119,7 @@ export function TokenSelectorModal({
                     )
                   }}
                 >
-                  <SelectTrigger className="w-full h-auto max-h-12">
+                  <SelectTrigger className="w-full h-auto max-h-12 border border-accent">
                     <SelectValue
                       placeholder="Select network"
                       className="max-w-lg w-full"
@@ -149,7 +150,9 @@ export function TokenSelectorModal({
                 {filteredNetworks.map((network, index) => (
                   <Item
                     key={`${network.id}-${index}`}
-                    className="bg-secondary!"
+										className={cn("bg-secondary!", {
+											"border border-accent": selectedNetwork?.id === network.id
+                    })}
                     size="sm"
                     onClick={() => onNetworkSelect(network)}
                   >
@@ -202,13 +205,15 @@ export function TokenSelectorModal({
 	              </InputGroupAddon>
 	            </InputGroup>
             </DialogHeader>
-            <ItemGroup className="flex-1 w-full p-4 gap-2 overflow-hidden overflow-y-auto">
+            <ItemGroup className="flex-1 w-full px-4 pb-4 gap-2 overflow-hidden overflow-y-auto">
               {filteredTokens.map((token) => (
                 <Item
                   key={token.id}
                   size="sm"
                   variant="outline"
-                  className="bg-muted flex flex-row items-start justify-start flex-nowrap my-2"
+									className={cn("bg-muted flex flex-row items-start justify-start flex-nowrap my-2", {
+										"border border-accent": sendToken && sendToken.id === token.id
+                  })}
                   onClick={() => {
                     onSelect(token)
                     onClose()
@@ -235,7 +240,7 @@ export function TokenSelectorModal({
                     </ItemDescription>
                   </ItemContent>
                   {sendToken && sendToken.id === token.id && (
-                    <ItemActions className="flex-1">
+                    <ItemActions className="flex-1 justify-end">
                       <Button
                         variant="default"
                         size="icon-sm"

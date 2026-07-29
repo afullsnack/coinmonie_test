@@ -58,7 +58,7 @@ export function BankSelectorModal({
       <DialogContent className="overflow-hidden">
         <div className="flex flex-col items-start justify-start gap-3">
           <DialogHeader>
-            <DialogTitle className="text-left">Choose a bank</DialogTitle>
+            <DialogTitle className="text-left text-2xl lg:text-lg">Choose a bank</DialogTitle>
             <DialogDescription>
               Select option from list or search
             </DialogDescription>
@@ -70,7 +70,6 @@ export function BankSelectorModal({
             </InputGroupAddon>
           </InputGroup>
           <ItemGroup
-            orientation="vertical"
             className="w-full max-h-[60dvh] overflow-y-auto gap-2"
           >
             {filteredBanks.map((bank, index) => (
