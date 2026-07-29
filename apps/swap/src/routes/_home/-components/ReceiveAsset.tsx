@@ -12,7 +12,7 @@ const ReceiveComponent = ({
 	fiat,
   rate
 }: any) => {
-	console.log(`Fiat`, {fiat})
+	console.log(`Fiat, ReceiveAmount`, {fiat, receiveAmount})
   return (
     <div className="bg-secondary-foreground/10 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
@@ -22,7 +22,7 @@ const ReceiveComponent = ({
         <Input
           type="text"
           placeholder="0.00"
-          value={(receiveAmount*(rate || 1))}
+          value={receiveAmount}
           disabled
           // onChange={(e) => handleSendAmountChange(e.target.value)}
           className={cn(
