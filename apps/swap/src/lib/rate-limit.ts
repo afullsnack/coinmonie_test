@@ -5,15 +5,23 @@ type Bucket = { count: number; resetAt: number }
 // In-memory fallback for environments without a shared KV store (local dev,
 // or a single long-running Node process where per-instance memory is fine).
 const memoryBuckets = new Map<string, Bucket>()
+let cleanupIntervalStarted = false
 
-setInterval(() => {
-	const now = Date.now()
-	for (const [key, bucket] of memoryBuckets) {
-		if (bucket.resetAt <= now) memoryBuckets.delete(key)
-	}
-}, 60_000).unref?.()
+function ensureCleanupInterval() {
+	// Workers forbid starting timers outside a request handler, so this is
+	// lazily started on first real use rather than at module load time.
+	if (cleanupIntervalStarted) return
+	cleanupIntervalStarted = true
+	setInterval(() => {
+		const now = Date.now()
+		for (const [key, bucket] of memoryBuckets) {
+			if (bucket.resetAt <= now) memoryBuckets.delete(key)
+		}
+	}, 60_000).unref?.()
+}
 
 function isRateLimitedInMemory(key: string, limit: number, windowMs: number): boolean {
+	ensureCleanupInterval()
 	const now = Date.now()
 	const bucket = memoryBuckets.get(key)
 
