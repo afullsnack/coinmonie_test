@@ -13,7 +13,7 @@ import { addMyDepositAddress } from '#/lib/my-transactions'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
-import DepositQrModal from './-components/DepositQrModal'
+import { QrCodeModal } from '#/components/qrcode-address-modal'
 import QuoteCountdown from './-components/QuoteCountdown'
 import WaitlistSignup from './-components/WaitlistSignup'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -174,28 +174,6 @@ function Home() {
 				currency: fiat.currency,
 			})
 		}
-
-    if (fiat.country === 'NG') {
-      initiate.mutate({
-        asset: sendToken?.id || '',
-        amount: Math.round(amount),
-        bankCode: bankLookup.data.bank_code,
-        accountName: bankLookup.data.account_name,
-        accountNumber: bankLookup.data.account_number,
-        country: fiat.country,
-        currency: fiat.currency,
-      })
-    } else {
-      initiate.mutate({
-        asset: sendToken?.id || '',
-        amount: Math.round(amount),
-        accountName: bankLookup.data.account_name,
-        mobileNetwork: bankLookup.data.mobile_network,
-        mobileNumber: bankLookup.data.phone_number,
-        country: fiat.country,
-        currency: fiat.currency,
-      })
-    }
   }
 
   return (
@@ -368,7 +346,7 @@ function Home() {
       )}
 
       {address && (
-        <DepositQrModal
+        <QrCodeModal
           open={isQrModalOpen}
           onClose={() => setIsQrModalOpen(false)}
           address={address}

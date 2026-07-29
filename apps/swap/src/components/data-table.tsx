@@ -8,10 +8,9 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core'
+import type { UniqueIdentifier } from '@dnd-kit/core'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import {
-  arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,

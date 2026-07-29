@@ -38,19 +38,22 @@ export function QrCodeModal({ open, onClose, address }: QrCodeModalProps) {
     >
       <DialogContent className="overflow-hidden">
 				<div className="w-full flex flex-col items-center justify-start gap-3 mt-5">
-					<div className='relative'>
-						<img src={'/coinmonie_icon.png'} className='z-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-center object-contain size-14 bg-white rounded-full' />
-	          <QRCode value={address} size={265} className="rounded-lg shadow-xl" />
+					<div className="relative rounded-xl border border-border bg-white p-4">
+						<img
+							src="/coinmonie_full_logo_rgb_white_transparent.png"
+							className="z-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-center object-contain size-12 bg-white rounded-xl shadow-md ring-4 ring-white brightness-0"
+						/>
+	          <QRCode value={address} size={220} level="H" />
 					</div>
-          <InputGroup>
-            <InputGroupInput value={address} disabled contentEditable={false} />
+          <InputGroup className="rounded-xl!">
+            <InputGroupInput value={address} disabled contentEditable={false} className="font-mono text-sm" />
             <InputGroupAddon align="inline-end">
               <CopyButton content={address} size="icon-sm" variant="ghost" />
             </InputGroupAddon>
           </InputGroup>
-          <Alert className="bg-accent text-white">
-            <BadgeInfoIcon />
-            <AlertDescription className='text-secondary'>
+          <Alert className="bg-card border-border rounded-xl">
+            <BadgeInfoIcon className="text-accent" />
+            <AlertDescription className="text-muted-foreground">
               Any token sent will be swapped to specified asset and recipient.
             </AlertDescription>
 					</Alert>
@@ -65,11 +68,10 @@ export function QrCodeModal({ open, onClose, address }: QrCodeModalProps) {
 const TokenGroup = ({networks}: {networks: Network[]}) => (
 	<AvatarGroup className="grayscale hover:grayscale-0">
 		{networks.slice(0, 4).map((network) => (
-	    <Avatar>
+	    <Avatar key={network.id}>
 	      <AvatarImage src={network.url} alt={network.name} />
 				<AvatarFallback>{network.name.charAt(0)}{network.name.charAt(1)}</AvatarFallback>
 	    </Avatar>
-
 		))}
 		<AvatarGroupCount>+{networks.length-4}</AvatarGroupCount>
   </AvatarGroup>
