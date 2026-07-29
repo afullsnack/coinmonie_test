@@ -39,34 +39,15 @@ export type Asset = {
 	wallet_supported: boolean;
 }
 
-export const NETWORKS = [
-	{ id: "ethereum", name: "Ethereum" },
-	{ id: "base", name: "Base" },
-	{ id: "optimism", name: "Optimism" },
-	{ id: "arbitrum", name: "Arbitrum" },
-	{ id: "polygon", name: "Polygon" },
-];
 
-export const TOKENS: Token[] = [
-	{ id: "usdc", symbol: "USDC", name: "USD Coin", network: "base", logoColor: "#2775ca", address: `0x`.padEnd(32, '0') },
-	{ id: "usdt", symbol: "USDT", name: "Tether", network: "ethereum", logoColor: "#26a17b", address: `0x`.padEnd(32, '0') },
-	{ id: "eth", symbol: "ETH", name: "Ethereum", network: "ethereum", logoColor: "#627eea", address: `0x`.padEnd(32, '0') },
-	{ id: "dai", symbol: "DAI", name: "Dai", network: "base", logoColor: "#f5ac37", address: `0x`.padEnd(32, '0') },
-	{ id: "wbtc", symbol: "WBTC", name: "Wrapped Bitcoin", network: "ethereum", logoColor: "#f7931a", address: `0x`.padEnd(32, '0') },
-	{ id: "link", symbol: "LINK", name: "Chainlink", network: "ethereum", logoColor: "#2a5ada", address: `0x`.padEnd(32, '0') },
-	{ id: "uni", symbol: "UNI", name: "Uniswap", network: "ethereum", logoColor: "#ff007a", address: `0x`.padEnd(32, '0') },
-	{ id: "aave", symbol: "AAVE", name: "Aave", network: "ethereum", logoColor: "#b6509e", address: `0x`.padEnd(32, '0') },
-	{ id: "matic", symbol: "POL", name: "Polygon", network: "polygon", logoColor: "#8247e5", address: `0x`.padEnd(32, '0') },
-	{ id: "atom", symbol: "ATOM", name: "Cosmos", network: "ethereum", logoColor: "#2e3148", address: `0x`.padEnd(32, '0') },
-];
-
-export const FIAT_CURRENCIES = [
-	{ id: "ngn", symbol: "NGN", name: "Nigerian Naira", rate: 1580.70 },
-	{ id: "kes", symbol: "KES", name: "Kenyan Shilling", rate: 153.50 },
-	{ id: "ghs", symbol: "GHS", name: "Ghanaian Cedi", rate: 14.85 },
-	{ id: "zar", symbol: "ZAR", name: "South African Rand", rate: 18.25 },
-	{ id: "eur", symbol: "EUR", name: "Euro", rate: 0.92 },
-	{ id: "gbp", symbol: "GBP", name: "British Pound", rate: 0.79 },
+export const LOCAL = [
+	{ currency: "NGN", country: "NG", name: "Nigerian Naira", url: `/nigeria.png` },
+	{ currency: "GHS", country: "GH", name: "Ghanaian Cedi", url: `/ghana.png` },
+	{ currency: "KES", country: "KE", name: "Kenyan Shilings", url: `/kenya.png` },
+	{ currency: "GMD", country: "GM", name: "Gambia", url: `gambia.png` },
+	{ currency: "XAF", country: "GA", name: "Garbon", url: `garbon.png` },
+	{ currency: "XOF", country: "SN", name: "Senegal", url: `senegal.png` },
+	{ currency: "XOF", country: "CI", name: "Ivory Coast", url: `ivory-coast.png` },
 ];
 
 
