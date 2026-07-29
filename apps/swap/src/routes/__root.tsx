@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
+import { Toaster } from "#/components/ui/sonner";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -24,7 +25,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Coin Money",
+				title: "Coinmonie",
 			},
 		],
 		links: [
@@ -45,6 +46,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				{children}
+				<Toaster richColors closeButton />
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",

@@ -7,10 +7,12 @@ const ReceiveComponent = ({
   handleSendAmountChange,
   sendAmount,
   receiveAmount,
-  setIsTokenModalOpen,
+  setIsFiatModalOpen,
   sendToken,
-  receiveCurrency,
+	fiat,
+  rate
 }: any) => {
+	console.log(`Fiat`, {fiat})
   return (
     <div className="bg-secondary-foreground/10 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
@@ -20,31 +22,31 @@ const ReceiveComponent = ({
         <Input
           type="text"
           placeholder="0.00"
-          value={receiveAmount}
+          value={(receiveAmount*(rate || 1))}
           disabled
-          onChange={(e) => handleSendAmountChange(e.target.value)}
+          // onChange={(e) => handleSendAmountChange(e.target.value)}
           className={cn(
             defaultInputStyle,
             'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-primary font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
           )}
         />
         <span className="text-secondary-foreground/60 text-xs">
-          NGN{receiveAmount || '0.00'}
+          {fiat.currency}{receiveAmount*(rate || 1) || '0.00'}
         </span>
       </div>
-      <div className="flex-1 items-center gap-3">
+      <div className="flex-1 flex flex-col items-center gap-3">
         <Button
-          onClick={() => setIsTokenModalOpen(true)}
+          onClick={() => setIsFiatModalOpen(true)}
           className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4 bg-accent"
-          disabled
         >
           <img
-            src="/nigeria.png"
+            src={fiat.url}
             className="size-6 rounded-full object-contain"
           />
-          <span className="text-xs md:text-sm text-secondary">NGN</span>
+          <span className="text-xs md:text-sm text-secondary">{fiat.currency}</span>
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-        </Button>
+				</Button>
+        {fiat && <span className="text-[10px] font-semibold text-center">{fiat?.name}</span>}
       </div>
     </div>
   )

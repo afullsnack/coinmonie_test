@@ -6,12 +6,14 @@ import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
-import type { Asset, Bank, Network } from '#/data/constants'
+import type { Asset, Bank, Fiat, Network } from '#/data/constants'
 import { bankLookUpMutationOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
 import { useMutation } from '@tanstack/react-query'
+import CopyButton from '#/components/ui/copy-button'
+import { FiatSelectorModal } from '#/components/fiat-selector-modal'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -21,6 +23,7 @@ const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
   const [sendToken, setSendToken] = useState<Asset | null>(null)
+  const [fiat, setFiat] = useState<Fiat | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [receiveCurrency, setReceiveCurrency] = useState<{
     id: string
@@ -33,14 +36,14 @@ function Home() {
   const [receiveAmount, setReceiveAmount] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
+  const [isFiatModalOpen, setIsFiatModalOpen] = useState(false)
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
-  const [isFindingQuote, setIsFindingQuote] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
 	const rate = useMutation(offrampRateMutationOptions)
 	const quote = useMutation(offrampQuoteMutationOptions)
 	const initiate = useMutation({
 		...initiateOfframpMutationOptions,
-		onSuccess(data, variables, onMutateResult, context) {
+		onSuccess(data) {
 			setAddress(data.deposit.address)
 		},
 	})
@@ -57,10 +60,10 @@ function Home() {
 	}, [accountNumber])
 
 	useEffect(() => {
-		if (sendToken) {
+		if (sendToken && fiat) {
 			rate.mutate({asset: sendToken.id})
 		}
-	}, [sendToken])
+	}, [sendToken, fiat])
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
@@ -84,7 +87,7 @@ function Home() {
 		console.log(`Amounts, send, receive`, sendAmount, amount, receivingAmount, receiveAmount)
 		initiate.mutate({
 			asset: sendToken?.id || '',
-			amount: Math.ceil(receivingAmount),
+			amount: Math.round(amount),
 			bankCode: bankLookup.data?.bank_code || '',
 			accountName: bankLookup.data?.account_name || '',
 			accountNumber: bankLookup.data?.account_number || '',
@@ -110,8 +113,9 @@ function Home() {
               handleSendAmountChange={handleSendAmountChange}
               sendAmount={sendAmount}
               receiveAmount={receiveAmount}
-              setIsTokenModalOpen={setIsTokenModalOpen}
-              receiveCurrency={receiveCurrency}
+              setIsFiatModalOpen={setIsFiatModalOpen}
+              fiat={fiat}
+              rate={rate.data?.rate}
             />
           </div>
 
@@ -151,15 +155,8 @@ function Home() {
               </h3>
               <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">{address}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="default"
-                size="icon-xs"
-                className="bg-accent rounded-full"
-                onClick={() => navigator.clipboard.writeText(address)}
-              >
-                <Copy />
-              </Button>
+						<div className="flex items-center gap-1">
+							<CopyButton content={address} className="bg-accent rounded-full" />
               <Button
                 variant="default"
                 size="icon-xs"
@@ -185,9 +182,16 @@ function Home() {
         onNetworkSelect={setSelectedNetwork}
 				sendToken={sendToken}
 				selectedNetwork={selectedNetwork}
-      />
+			/>
 
-      <BankSelectorModal
+			<FiatSelectorModal
+				onClose={() => setIsFiatModalOpen(false)}
+				open={isFiatModalOpen}
+				onFiatSelect={setFiat}
+				selectedFiat={fiat}
+			/>
+
+			<BankSelectorModal
         open={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
         onSelect={setSelectedBank}
