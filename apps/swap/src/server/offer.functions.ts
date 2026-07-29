@@ -32,8 +32,11 @@ const FILES = [
 export const bankLookup = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      bankCode: z.string(),
-      accountNumber: z.string(),
+      bankCode: z.string().optional(),
+			accountNumber: z.string().optional(),
+			phoneNumber: z.string().optional(),
+			mobileNetwork: z.string().optional(),
+      country: z.string().default('NG')
     }),
   )
   .handler(async ({ data }) => {
@@ -43,8 +46,10 @@ export const bankLookup = createServerFn({ method: 'POST' })
         message: string
         timestamp: string
         data: {
-          bank_code: string
-          account_number: string
+          bank_code?: string
+					account_number?: string
+					phone_number?: string
+          mobile_network?: string
           account_name: string
         }
       }>(`${SWITCH_API_URL}/institution/lookup`, {
@@ -53,10 +58,12 @@ export const bankLookup = createServerFn({ method: 'POST' })
           'x-service-key': env.SWITCH_API_KEY,
         },
         body: JSON.stringify({
-          country: 'NG',
+          country: data.country,
           beneficiary: {
             account_number: data.accountNumber,
-            bank_code: data.bankCode,
+						bank_code: data.bankCode,
+						phone_number: data.phoneNumber,
+            mobile_network: data.mobileNetwork
           },
         }),
       })
@@ -71,7 +78,41 @@ export const bankLookup = createServerFn({ method: 'POST' })
       console.log(`Failed to look up bank`, { error })
       throw error
     }
-  })
+	})
+
+export const getInstitution = createServerFn()
+	.validator(z.object({
+		country: z.string().default('NG')
+	}))
+	.handler(async ({ data }) => {
+		try {
+			const { data: result, error } = await betterFetch<{
+				success: boolean
+        message: string
+        timestamp: string
+				data: Array<{
+					code: string;
+					name: string;
+					[key: string]: any
+				}>
+			}>(`${SWITCH_API_URL}/institution`, {
+				query: {
+					country: data.country
+				}
+			})
+
+			if (error) {
+				console.log(`[BetterFetch]: Failed to get institute`, { error })
+				throw error
+			}
+
+			return result.data
+		}
+		catch (error: any) {
+			console.log(`Failed to get institution`, { error })
+			throw error;
+		}
+	})
 
 export const history = createServerFn({method: "GET"})
 	.validator(z.object({
@@ -144,9 +185,9 @@ export const assetList = createServerFn({ method: 'GET' }).handler(async () => {
       throw error
     }
 
-    const files = FILES
+		const files = FILES
 
-    return assets.data.map((asset) => {
+		return assets.data.filter((asset) => asset.offramp_supported).map((asset) => {
       const assetMatcher = asset.code.toLowerCase()
       const networkMatcher = asset.blockchain.name.toLowerCase()
       const matchedAssetFile = files.find(
@@ -175,7 +216,9 @@ export const getQuote = createServerFn()
   .validator(
     z.object({
       asset: z.string(),
-      amount: z.number(),
+			amount: z.number(),
+			country: z.string().default('NG'),
+      currency: z.string().default('NGN'),
     }),
   )
   .handler(async ({ data }) => {
@@ -213,12 +256,10 @@ export const getQuote = createServerFn()
         body: JSON.stringify({
           amount: data.amount,
           asset: data.asset,
-          country: 'NG',
-          currency: 'NGN',
-          channel: 'BANK',
+          country: data.country,
+          currency: data.currency,
           exact_output: false,
-          developer_fee: 0.5,
-          // developer_recipient: ``
+          // developer_fee: 0.5,
         }),
       })
 
@@ -239,9 +280,13 @@ export const initiateOffer = createServerFn()
     z.object({
       asset: z.string(),
 			amount: z.number(),
-			accountName: z.string(),
-			accountNumber: z.string(),
-      bankCode: z.string(),
+			accountName: z.string().optional(),
+			accountNumber: z.string().optional(),
+			mobileNumber: z.string().optional(),
+			mobileNetwork: z.string().optional(),
+			bankCode: z.string().optional(),
+			country: z.string().default('NG'),
+      currency: z.string().default('NGN'),
     }),
   )
   .handler(async ({ data }) => {
@@ -292,16 +337,16 @@ export const initiateOffer = createServerFn()
         body: JSON.stringify({
           amount: data.amount,
           asset: data.asset,
-          country: 'NG',
-          currency: 'NGN',
-          channel: 'BANK',
-					exact_output: false,
+          country: data.country,
+          currency: data.currency,
 					reference: crypto.randomUUID(),
 					beneficiary: {
 						holder_type: "INDIVIDUAL",
 						holder_name: data.accountName,
 						account_number: data.accountNumber,
 						bank_code: data.bankCode,
+						mobile_number: data.mobileNetwork,
+						mobile_network: data.mobileNetwork,
 					},
 					sender_name: 'Coinmonie',
           reason: "REMITTANCE",
@@ -325,7 +370,9 @@ export const initiateOffer = createServerFn()
 export const getRate = createServerFn()
   .validator(
     z.object({
-      asset: z.string(),
+			asset: z.string(),
+			country: z.string().default('NG'),
+      currency: z.string().default('NGN'),
     }),
   )
   .handler(async ({ data }) => {
@@ -341,14 +388,14 @@ export const getRate = createServerFn()
           'x-service-key': env.SWITCH_API_KEY,
         },
         body: JSON.stringify({
-          country: 'NG',
+          country: data.country,
           asset: data.asset,
-          currency: 'NGN',
+          currency: data.currency,
         }),
       })
 
       if (error) {
-        console.log(`Failed to get rate`, { error })
+        console.log(`[BetterFetch] Failed to get rate for: ${data.country}`, { error })
         throw error
       }
 
