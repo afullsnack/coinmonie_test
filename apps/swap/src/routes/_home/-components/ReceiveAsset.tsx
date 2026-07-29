@@ -12,7 +12,6 @@ const ReceiveComponent = ({
 	fiat,
   rate
 }: any) => {
-	console.log(`Fiat, ReceiveAmount`, {fiat, receiveAmount})
   return (
     <div className="bg-secondary-foreground/10 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
