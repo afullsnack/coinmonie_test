@@ -52,11 +52,10 @@ function Home() {
 	const bankLookup = useMutation(bankLookUpMutationOptions)
 
 	useEffect(() => {
-		console.log(`Account number`, {accountNumber, length: accountNumber.length})
-		if (accountNumber && accountNumber.length >= fiat.mobileLength) {
+		if (selectedBank && accountNumber && accountNumber.length >= fiat.mobileLength) {
 			if (fiat.country === "NG") {
 				bankLookup.mutate({
-					bankCode: selectedBank?.code || '',
+					bankCode: selectedBank.code || '',
 					accountNumber: accountNumber,
 					country: fiat.country,
 				})
@@ -64,11 +63,11 @@ function Home() {
 				bankLookup.mutate({
 					phoneNumber: accountNumber,
 					country: fiat.country,
-					mobileNetwork: selectedBank?.code
+					mobileNetwork: selectedBank.code
 				})
 			}
 		}
-	}, [accountNumber])
+	}, [accountNumber, selectedBank])
 
 	useEffect(() => {
 		if (sendToken) {
@@ -100,17 +99,33 @@ function Home() {
   }
 
   const handleSwap = async () => {
-		if (!sendAmount || !selectedBank || !accountNumber) return
+		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data) return
 		const amount = Number.parseFloat(sendAmount)
 		const receivingAmount = amount * (rate.data?.rate ?? 1)
-		console.log(`Amounts, send, receive`, sendAmount, amount, receivingAmount, receiveAmount)
-		initiate.mutate({
-			asset: sendToken?.id || '',
-			amount: Math.round(amount),
-			bankCode: bankLookup.data?.bank_code || '',
-			accountName: bankLookup.data?.account_name || '',
-			accountNumber: bankLookup.data?.account_number || '',
-		})
+		console.log(`Amounts, send, receive, fiat, bank`, sendAmount, amount, receivingAmount, receiveAmount, fiat, selectedBank)
+
+		if (fiat.country === "NG") {
+			initiate.mutate({
+				asset: sendToken?.id || '',
+				amount: Math.round(amount),
+				bankCode: bankLookup.data.bank_code,
+				accountName: bankLookup.data.account_name,
+				accountNumber: bankLookup.data.account_number,
+				country: fiat.country,
+				currency: fiat.currency,
+			})
+		} else {
+			initiate.mutate({
+				asset: sendToken?.id || '',
+				amount: Math.round(amount),
+				accountName: bankLookup.data.account_name,
+				mobileNetwork: bankLookup.data.mobile_network,
+				mobileNumber: bankLookup.data.phone_number,
+				country: fiat.country,
+				currency: fiat.currency,
+			})
+		}
+
   }
 
   console.log(`Address`, { address })
@@ -176,10 +191,10 @@ function Home() {
               <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">{address}</span>
             </div>
 						<div className="flex items-center gap-1">
-							<CopyButton content={address} className="bg-accent rounded-full" />
+							<CopyButton content={address} className="bg-accent rounded-full" size="icon-sm" />
               <Button
                 variant="default"
-                size="icon-xs"
+                size="icon-sm"
                 className="bg-accent rounded-full"
               >
                 <QrCode />
