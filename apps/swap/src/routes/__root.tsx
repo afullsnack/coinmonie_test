@@ -33,6 +33,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				rel: "stylesheet",
 				href: appCss,
 			},
+			{
+				rel: "icon",
+				href: "/coinmonie_icon.png",
+				type: 'image/x-icon',
+			}
 		],
 	}),
 	shellComponent: RootDocument,
