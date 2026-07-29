@@ -1,7 +1,6 @@
 import { db } from '#/db'
-import { user } from '#/db/schema'
-import { eq } from 'drizzle-orm'
-import { auth } from '#/lib/auth'
+import { account, user } from '#/db/schema'
+import { hashPassword } from 'better-auth/crypto'
 import { env } from '#/env'
 
 let bootstrapped = false
@@ -12,16 +11,28 @@ export async function ensureAdminUser() {
 
 	if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD) return
 
+	const normalizedEmail = env.ADMIN_EMAIL.toLowerCase()
+
 	const existing = await db.query.user.findFirst({
-		where: eq(user.email, env.ADMIN_EMAIL),
+		where: (user, { eq }) => eq(user.email, normalizedEmail),
 	})
 	if (existing) return
 
-	await auth.api.signUpEmail({
-		body: {
-			email: env.ADMIN_EMAIL,
-			password: env.ADMIN_PASSWORD,
-			name: 'Admin',
-		},
+	const userId = crypto.randomUUID()
+	const hashed = await hashPassword(env.ADMIN_PASSWORD)
+
+	await db.insert(user).values({
+		id: userId,
+		name: 'Admin',
+		email: normalizedEmail,
+		emailVerified: true,
+	})
+
+	await db.insert(account).values({
+		id: crypto.randomUUID(),
+		accountId: userId,
+		providerId: 'credential',
+		userId,
+		password: hashed,
 	})
 }
