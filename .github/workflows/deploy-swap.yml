@@ -35,7 +35,7 @@ jobs:
           SWITCH_API_URL: ${{ secrets.SWITCH_API_URL }}
           SWITCH_API_KEY: ${{ secrets.SWITCH_API_KEY }}
           SERVER_URL: ${{ secrets.SERVER_URL }}
-          NODE_ENV: production
+          NODE_ENV: ${{ secrets.NODE_ENV }}
           FEATURE_FLAG_TRANSACTION_HISTORY: ${{ secrets.FEATURE_FLAG_TRANSACTION_HISTORY }}
           FEATURE_FLAG_CURRENCIES: ${{ secrets.FEATURE_FLAG_CURRENCIES }}
           FEATURE_FLAG_ADMIN_DASHBOARD: ${{ secrets.FEATURE_FLAG_ADMIN_DASHBOARD }}
@@ -54,6 +54,14 @@ jobs:
           echo "${{ secrets.SWITCH_API_KEY }}" | npx wrangler secret put SWITCH_API_KEY
           echo "${{ secrets.ADMIN_EMAIL }}" | npx wrangler secret put ADMIN_EMAIL
           echo "${{ secrets.ADMIN_PASSWORD }}" | npx wrangler secret put ADMIN_PASSWORD
+          echo "${{ secrets.NODE_ENV }}" | npx wrangler secret put NODE_ENV
+          echo "${{ secrets.SERVER_URL }}" | npx wrangler secret put SERVER_URL
+          echo "${{ secrets.FEATURE_FLAG_TRANSACTION_HISTORY }}" | npx wrangler secret put FEATURE_FLAG_TRANSACTION_HISTORY
+          echo "${{ secrets.FEATURE_FLAG_CURRENCIES }}" | npx wrangler secret put FEATURE_FLAG_CURRENCIES
+          echo "${{ secrets.FEATURE_FLAG_ADMIN_DASHBOARD }}" | npx wrangler secret put FEATURE_FLAG_ADMIN_DASHBOARD
+          echo "${{ secrets.FEATURE_FLAG_DEVELOPER_FEE }}" | npx wrangler secret put FEATURE_FLAG_DEVELOPER_FEE
+          echo "${{ secrets.DEVELOPER_FEE_PERCENT }}" | npx wrangler secret put DEVELOPER_FEE_PERCENT
+          echo "${{ secrets.FEATURE_FLAG_RATE_LIMIT }}" | npx wrangler secret put FEATURE_FLAG_RATE_LIMIT
 
       - name: Deploy
         working-directory: apps/swap
