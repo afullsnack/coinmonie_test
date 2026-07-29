@@ -6,13 +6,14 @@ import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
-import { LOCAL } from '#/data/constants'
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
-import { bankLookUpMutationOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
+import { assetListQueryOptions, bankLookUpMutationOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
+import { addMyDepositAddress } from '#/lib/my-transactions'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
-import { useMutation } from '@tanstack/react-query'
+import DepositQrModal from './-components/DepositQrModal'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import CopyButton from '#/components/ui/copy-button'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
 
@@ -25,7 +26,9 @@ const BASE_ASSET_RATE_USD = 1386
 function Home() {
 	const queryClient = useRouteContext({from: "/_home/", select: (c) => c.queryClient})
   const [sendToken, setSendToken] = useState<Asset | null>(null)
-  const [fiat, setFiat] = useState<Fiat>(LOCAL[0])
+  const currencies = useQuery(enabledCurrenciesQueryOptions)
+  const assets = useQuery(assetListQueryOptions)
+  const [fiat, setFiat] = useState<Fiat | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [receiveCurrency, setReceiveCurrency] = useState<{
     id: string
@@ -40,6 +43,7 @@ function Home() {
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isFiatModalOpen, setIsFiatModalOpen] = useState(false)
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
 	const rate = useMutation(offrampRateMutationOptions)
 	const quote = useMutation(offrampQuoteMutationOptions)
@@ -47,12 +51,29 @@ function Home() {
 		...initiateOfframpMutationOptions,
 		onSuccess(data) {
 			setAddress(data.deposit.address)
+			addMyDepositAddress(data.deposit.address)
 		},
 	})
 	const bankLookup = useMutation(bankLookUpMutationOptions)
 
 	useEffect(() => {
-		if (selectedBank && accountNumber && accountNumber.length >= fiat.mobileLength) {
+		if (!fiat && currencies.data.length > 0) {
+			setFiat(currencies.data[0])
+		}
+	}, [currencies.data, fiat])
+
+	useEffect(() => {
+		if (!selectedNetwork && assets.data.length > 0) {
+			const bscNames = ['bsc', 'bnb chain', 'binance smart chain', 'bnb']
+			const bscAsset = assets.data.find((asset) => bscNames.includes(asset.blockchain.name.toLowerCase()))
+			if (bscAsset) {
+				setSelectedNetwork({ ...bscAsset.blockchain, type: bscAsset.blockchain.type ?? '' })
+			}
+		}
+	}, [assets.data, selectedNetwork])
+
+	useEffect(() => {
+		if (fiat && selectedBank && accountNumber && accountNumber.length >= fiat.mobileLength) {
 			if (fiat.country === "NG") {
 				bankLookup.mutate({
 					bankCode: selectedBank.code || '',
@@ -70,7 +91,7 @@ function Home() {
 	}, [accountNumber, selectedBank])
 
 	useEffect(() => {
-		if (sendToken) {
+		if (sendToken && fiat) {
 			rate.mutate({
 				asset: sendToken.id,
 				country: fiat.country,
@@ -99,7 +120,7 @@ function Home() {
   }
 
   const handleSwap = async () => {
-		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data) return
+		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data || !fiat) return
 		const amount = Number.parseFloat(sendAmount)
 		const receivingAmount = amount * (rate.data?.rate ?? 1)
 		console.log(`Amounts, send, receive, fiat, bank`, sendAmount, amount, receivingAmount, receiveAmount, fiat, selectedBank)
@@ -196,6 +217,8 @@ function Home() {
                 variant="default"
                 size="icon-sm"
                 className="bg-accent rounded-full"
+                onClick={() => setIsQrModalOpen(true)}
+                aria-label="Show QR code"
               >
                 <QrCode />
               </Button>
@@ -226,13 +249,23 @@ function Home() {
 				selectedFiat={fiat}
 			/>
 
-			<BankSelectorModal
-        open={isBankModalOpen}
-        onClose={() => setIsBankModalOpen(false)}
-        onSelect={setSelectedBank}
-				selectedBank={selectedBank}
-        fiat={fiat}
-      />
+			{fiat && (
+        <BankSelectorModal
+          open={isBankModalOpen}
+          onClose={() => setIsBankModalOpen(false)}
+          onSelect={setSelectedBank}
+					selectedBank={selectedBank}
+          fiat={fiat}
+        />
+      )}
+
+      {address && (
+        <DepositQrModal
+          open={isQrModalOpen}
+          onClose={() => setIsQrModalOpen(false)}
+          address={address}
+        />
+      )}
     </>
   )
 }

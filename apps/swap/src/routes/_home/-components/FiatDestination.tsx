@@ -19,6 +19,7 @@ const FiatDestination = ({
 	fiat,
 }: any) => {
 	// const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
+	const needsBank = Boolean(accountNumber) && !selectedbank
 
 	return (
 		<>
@@ -28,7 +29,7 @@ const FiatDestination = ({
 					size="xs"
           onClick={() => setIsBankModalOpen(true)}
 					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-lg", {
-						// "": typeof selectedbank !== "undefined"
+						"animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsBank,
           })}
 				>
 					{selectedbank && (

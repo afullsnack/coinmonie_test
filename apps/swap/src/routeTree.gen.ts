@@ -10,12 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HomeRouteRouteImport } from './routes/_home/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as HomeTransactionsRouteImport } from './routes/_home/transactions'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
+import { Route as AdminChangePasswordRouteImport } from './routes/admin/change-password'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const HomeRouteRoute = HomeRouteRouteImport.update({
   id: '/_home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
@@ -28,6 +38,26 @@ const HomeTransactionsRoute = HomeTransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => HomeRouteRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminChangePasswordRoute = AdminChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -36,31 +66,71 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof HomeIndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/transactions': typeof HomeTransactionsRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/change-password': typeof AdminChangePasswordRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/transactions': typeof HomeTransactionsRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/change-password': typeof AdminChangePasswordRoute
+  '/admin/login': typeof AdminLoginRoute
   '/': typeof HomeIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_home': typeof HomeRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/_home/transactions': typeof HomeTransactionsRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/change-password': typeof AdminChangePasswordRoute
+  '/admin/login': typeof AdminLoginRoute
   '/_home/': typeof HomeIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/transactions' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/transactions'
+    | '/admin/admins'
+    | '/admin/change-password'
+    | '/admin/login'
+    | '/admin/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/transactions' | '/' | '/api/auth/$'
-  id: '__root__' | '/_home' | '/_home/transactions' | '/_home/' | '/api/auth/$'
+  to:
+    | '/transactions'
+    | '/admin/admins'
+    | '/admin/change-password'
+    | '/admin/login'
+    | '/'
+    | '/admin'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/_home'
+    | '/admin'
+    | '/_home/transactions'
+    | '/admin/admins'
+    | '/admin/change-password'
+    | '/admin/login'
+    | '/_home/'
+    | '/admin/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   HomeRouteRoute: typeof HomeRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -71,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof HomeRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_home/': {
@@ -86,6 +163,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/transactions'
       preLoaderRoute: typeof HomeTransactionsRouteImport
       parentRoute: typeof HomeRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/admins': {
+      id: '/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AdminAdminsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/change-password': {
+      id: '/admin/change-password'
+      path: '/change-password'
+      fullPath: '/admin/change-password'
+      preLoaderRoute: typeof AdminChangePasswordRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -111,8 +216,27 @@ const HomeRouteRouteWithChildren = HomeRouteRoute._addFileChildren(
   HomeRouteRouteChildren,
 )
 
+interface AdminRouteRouteChildren {
+  AdminAdminsRoute: typeof AdminAdminsRoute
+  AdminChangePasswordRoute: typeof AdminChangePasswordRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAdminsRoute: AdminAdminsRoute,
+  AdminChangePasswordRoute: AdminChangePasswordRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   HomeRouteRoute: HomeRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

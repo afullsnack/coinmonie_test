@@ -31,7 +31,7 @@ const ReceiveComponent = ({
           )}
         />
         <span className="text-secondary-foreground/60 text-xs">
-          {fiat.currency}{receiveAmount*(rate || 1) || '0.00'}
+          {fiat?.currency}{receiveAmount*(rate || 1) || '0.00'}
         </span>
       </div>
       <div className="flex-1 flex flex-col items-center gap-3">
@@ -39,11 +39,13 @@ const ReceiveComponent = ({
           onClick={() => setIsFiatModalOpen(true)}
           className="flex items-center gap-2 rounded-3xl h-auto max-h-12 px-6! py-4 bg-accent"
         >
-          <img
-            src={fiat.url}
-            className="size-6 rounded-full object-contain"
-          />
-          <span className="text-xs md:text-sm text-secondary">{fiat.currency}</span>
+          {fiat && (
+            <img
+              src={fiat.url}
+              className="size-6 rounded-full object-contain"
+            />
+          )}
+          <span className="text-xs md:text-sm text-secondary">{fiat?.currency ?? 'Choose currency'}</span>
           <ChevronDownIcon className="w-4 h-4 text-gray-400" />
 				</Button>
         {fiat && <span className="text-[10px] font-semibold text-center">{fiat?.name}</span>}

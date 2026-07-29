@@ -5,7 +5,21 @@ export const env = createEnv({
 	server: {
 		SERVER_URL: z.string().url().optional(),
 		SWITCH_API_KEY: z.string(),
-		NODE_ENV: z.string()
+		NODE_ENV: z.string(),
+		FEATURE_FLAG_TRANSACTION_HISTORY: z
+			.string()
+			.transform((v) => v === "true")
+			.default(false),
+		FEATURE_FLAG_CURRENCIES: z
+			.string()
+			.default("NGN")
+			.transform((v) => v.split(",").map((c) => c.trim().toUpperCase())),
+		FEATURE_FLAG_ADMIN_DASHBOARD: z
+			.string()
+			.transform((v) => v === "true")
+			.default(false),
+		ADMIN_EMAIL: z.string().email().optional(),
+		ADMIN_PASSWORD: z.string().min(8).optional(),
 	},
 
 	/**

@@ -1,5 +1,9 @@
 import type { Transaction } from '#/data/constants'
+import { LOCAL } from '#/data/constants'
 import { env } from '#/env'
+import { db } from '#/db'
+import { transactions } from '#/db/schema'
+import { requireAdminSession } from '#/lib/require-admin-session'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
@@ -28,6 +32,10 @@ const FILES = [
   'usdc.png',
   'usdt.png',
 ]
+
+export const enabledCurrencies = createServerFn({ method: 'GET' }).handler(async () => {
+	return LOCAL.filter((fiat) => env.FEATURE_FLAG_CURRENCIES.includes(fiat.currency))
+})
 
 export const bankLookup = createServerFn({ method: 'POST' })
   .validator(
@@ -123,38 +131,72 @@ export const getInstitution = createServerFn()
 
 export const history = createServerFn({method: "GET"})
 	.validator(z.object({
+		depositAddress: z.string(),
 		limit: z.number().optional(),
 		page: z.number().optional()
-	}).optional())
+	}))
 	.handler(async ({ data }) => {
 		try {
-			const { data: historyResult, error } = await betterFetch<{
-				success: boolean
-	      message: string
-	      timestamp: string
-				data: {data: Array<Transaction>}
-			}>(`${SWITCH_API_URL}/payment/history`, {
-				headers: {
-					'x-service-key': env.SWITCH_API_KEY
-				}
+			const rows = await db.query.transactions.findMany({
+				where: (transactions, { eq, and, ne }) => and(
+					eq(transactions.depositAddress, data.depositAddress),
+					ne(transactions.status, 'AWAITING_DEPOSIT'),
+				),
+				orderBy: (transactions, { desc }) => desc(transactions.createdAt),
+				limit: data.limit ?? 50,
+				offset: data.page ? data.page * (data.limit ?? 50) : 0,
 			})
 
-			if (error) {
-				console.log(`Failed to get payment history`, { error })
-				throw error
-			}
-
-			return historyResult.data.data.map((transaction) => ({
-				date: formatDistanceToNow(new Date(transaction.created_at)),
+			return rows.map((transaction) => ({
+				date: formatDistanceToNow(transaction.createdAt),
 				reference: transaction.reference,
-				youWillSend: {amount: transaction.source.amount, currency: transaction.source.currency},
-				youWillReceive: { amount: transaction.destination.amount, currency: transaction.destination.currency },
+				youWillSend: { amount: Number(transaction.sourceAmount), currency: transaction.sourceCurrency },
+				youWillReceive: { amount: Number(transaction.destAmount), currency: transaction.destCurrency },
 				status: transaction.status
 			}))
 		}
 		catch (error: any) {
-			console.log(`Failed to make payment history request`, { error })
+			console.log(`Failed to load transaction history`, { error })
 			throw error
+		}
+	})
+
+export const getTransactionByReference = createServerFn({ method: 'GET' })
+	.validator(z.object({ reference: z.string() }))
+	.handler(async ({ data }) => {
+		const transaction = await db.query.transactions.findFirst({
+			where: (transactions, { eq }) => eq(transactions.reference, data.reference),
+		})
+		if (!transaction) {
+			throw new Error('Transaction not found')
+		}
+		return transaction
+	})
+
+export const adminListTransactions = createServerFn({ method: 'GET' })
+	.handler(async () => {
+		await requireAdminSession()
+		return await db.query.transactions.findMany({
+			orderBy: (transactions, { desc }) => desc(transactions.createdAt),
+		})
+	})
+
+export const adminStats = createServerFn({ method: 'GET' })
+	.handler(async () => {
+		await requireAdminSession()
+
+		const rows = await db.query.transactions.findMany()
+		const completed = rows.filter((t) => t.status === 'COMPLETED')
+		const totalCompletedSourceUsd = completed.reduce((sum, t) => {
+			const isStable = ['USDT', 'USDC'].some((s) => t.asset.toUpperCase().includes(s))
+			return sum + (isStable ? Number(t.sourceAmount) : 0)
+		}, 0)
+
+		return {
+			totalTransactions: rows.length,
+			totalCompleted: completed.length,
+			totalPending: rows.filter((t) => t.status !== 'COMPLETED' && t.status !== 'AWAITING_DEPOSIT').length,
+			totalCompletedSourceUsd,
 		}
 	})
 
@@ -352,7 +394,7 @@ export const initiateOffer = createServerFn()
 						holder_name: data.accountName,
 						account_number: data.accountNumber,
 						bank_code: data.bankCode,
-						mobile_number: data.mobileNetwork,
+						mobile_number: data.mobileNumber,
 						mobile_network: data.mobileNetwork,
 					},
 					sender_name: 'Coinmonie',
@@ -366,6 +408,24 @@ export const initiateOffer = createServerFn()
         console.log(`[BetterFetch] Failed to fetch quote`, { error })
         throw error
       }
+
+      await db.insert(transactions).values({
+        reference: quote.data.reference,
+        depositAddress: quote.data.deposit.address,
+        asset: data.asset,
+        sourceAmount: String(quote.data.source.amount),
+        sourceCurrency: quote.data.source.currency,
+        destAmount: String(quote.data.destination.amount),
+        destCurrency: quote.data.destination.currency,
+        channel: data.mobileNumber ? 'MOBILEMONEY' : 'BANK',
+        accountName: data.accountName ?? '',
+        accountNumber: data.accountNumber ?? null,
+        bankCode: data.bankCode ?? null,
+        mobileNumber: data.mobileNumber ?? null,
+        mobileNetwork: data.mobileNetwork ?? null,
+        transactionHash: quote.data.meta?.hash ?? null,
+        status: quote.data.status,
+      })
 
       return quote.data
     } catch (error: any) {

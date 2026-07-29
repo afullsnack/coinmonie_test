@@ -1,13 +1,23 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
 import {
+  adminListTransactions,
+  adminStats,
   assetList,
   bankLookup,
+  enabledCurrencies,
   getInstitution,
   getQuote,
   getRate,
   history,
   initiateOffer,
 } from '#/server/offer.functions'
+import {
+  addAdmin,
+  changeOwnPassword,
+  deleteAdmin,
+  listAdmins,
+  resetAdminPassword,
+} from '#/server/admin.functions'
 import { toast } from 'sonner'
 
 export type Coin = {
@@ -76,14 +86,66 @@ export const assetListQueryOptions = queryOptions({
   initialData: [],
 })
 
-export const getHistoryQueryOptions = queryOptions({
+export const getHistoryQueryOptions = (depositAddresses: string[]) => queryOptions({
   retryOnMount: true,
   refetchOnWindowFocus: true,
   gcTime: 30_000_000,
-  // staleTime: 30_000,
-  queryKey: ['getHistory'],
-  queryFn: async () => await history(),
+  queryKey: ['getHistory', depositAddresses],
+  queryFn: async () => {
+    const results = await Promise.all(
+      depositAddresses.map((depositAddress) => history({ data: { depositAddress } }))
+    )
+    return results.flat().sort((a, b) => b.date.localeCompare(a.date))
+  },
+  enabled: depositAddresses.length > 0,
   initialData: [],
+})
+
+export const enabledCurrenciesQueryOptions = queryOptions({
+  retryOnMount: true,
+  gcTime: 30_000_000,
+  queryKey: ['enabledCurrencies'],
+  queryFn: async () => await enabledCurrencies(),
+  initialData: [],
+})
+
+export const adminTransactionsQueryOptions = queryOptions({
+  queryKey: ['admin', 'transactions'],
+  queryFn: async () => await adminListTransactions(),
+})
+
+export const adminStatsQueryOptions = queryOptions({
+  queryKey: ['admin', 'stats'],
+  queryFn: async () => await adminStats(),
+})
+
+export const adminListQueryOptions = queryOptions({
+  queryKey: ['admin', 'admins'],
+  queryFn: async () => await listAdmins(),
+})
+
+export const addAdminMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'addAdmin'],
+  mutationFn: async (values: { email: string; password: string; name: string }) =>
+    await addAdmin({ data: values }),
+})
+
+export const resetAdminPasswordMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'resetAdminPassword'],
+  mutationFn: async (values: { userId: string; password: string }) =>
+    await resetAdminPassword({ data: values }),
+})
+
+export const deleteAdminMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'deleteAdmin'],
+  mutationFn: async (values: { userId: string }) =>
+    await deleteAdmin({ data: values }),
+})
+
+export const changeOwnPasswordMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'changeOwnPassword'],
+  mutationFn: async (values: { password: string }) =>
+    await changeOwnPassword({ data: values }),
 })
 
 export const offrampRateMutationOptions = mutationOptions({

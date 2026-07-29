@@ -354,7 +354,7 @@ export function DataTable({
             asChild
             className="bg-accent"
           >
-            <Link to="/" preload="intent">
+            <Link to="/" preload="intent" className="no-underline">
               <IconPlus className="text-secondary" />
               <span className="hidden lg:inline text-secondary">
                 New Transfer

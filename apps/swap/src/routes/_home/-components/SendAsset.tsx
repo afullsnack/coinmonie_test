@@ -12,6 +12,8 @@ const SendComponent = ({
 	sendToken,
   rate,
 }: any) => {
+  const needsToken = Boolean(sendAmount) && !sendToken
+
   return (
     <div className="bg-secondary-foreground/5 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
@@ -36,7 +38,10 @@ const SendComponent = ({
       <div className="flex-1 grid items-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
-          className="flex items-center justify-between gap-2 rounded-3xl h-auto max-h-12 px-3! py-4 bg-accent group"
+          className={cn(
+            "flex items-center justify-between gap-2 rounded-3xl h-auto max-h-12 px-3! py-4 bg-accent group",
+            { "animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsToken },
+          )}
         >
           {!sendToken && (
             <span className="text-xs md:text-sm">Choose token</span>
