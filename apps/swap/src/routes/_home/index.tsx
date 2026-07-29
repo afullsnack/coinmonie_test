@@ -7,8 +7,13 @@ import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import { LOCAL } from '#/data/constants'
-import type {Asset, Bank, Fiat, Network} from "#/data/constants"
-import { bankLookUpMutationOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
+import type { Asset, Bank, Fiat, Network } from '#/data/constants'
+import {
+  bankLookUpMutationOptions,
+  initiateOfframpMutationOptions,
+  offrampQuoteMutationOptions,
+  offrampRateMutationOptions,
+} from '#/lib/api-client'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
@@ -18,12 +23,14 @@ import { FiatSelectorModal } from '#/components/fiat-selector-modal'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
-
 const BASE_ASSET = 'NGN'
 const BASE_ASSET_RATE_USD = 1386
 
 function Home() {
-	const queryClient = useRouteContext({from: "/_home/", select: (c) => c.queryClient})
+  const queryClient = useRouteContext({
+    from: '/_home/',
+    select: (c) => c.queryClient,
+  })
   const [sendToken, setSendToken] = useState<Asset | null>(null)
   const [fiat, setFiat] = useState<Fiat>(LOCAL[0])
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
@@ -41,47 +48,51 @@ function Home() {
   const [isFiatModalOpen, setIsFiatModalOpen] = useState(false)
   const [isBankModalOpen, setIsBankModalOpen] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
-	const rate = useMutation(offrampRateMutationOptions)
-	const quote = useMutation(offrampQuoteMutationOptions)
-	const initiate = useMutation({
-		...initiateOfframpMutationOptions,
-		onSuccess(data) {
-			setAddress(data.deposit.address)
-		},
-	})
-	const bankLookup = useMutation(bankLookUpMutationOptions)
+  const rate = useMutation(offrampRateMutationOptions)
+  const quote = useMutation(offrampQuoteMutationOptions)
+  const initiate = useMutation({
+    ...initiateOfframpMutationOptions,
+    onSuccess(data) {
+      setAddress(data.deposit.address)
+    },
+  })
+  const bankLookup = useMutation(bankLookUpMutationOptions)
 
-	useEffect(() => {
-		if (selectedBank && accountNumber && accountNumber.length >= fiat.mobileLength) {
-			if (fiat.country === "NG") {
-				bankLookup.mutate({
-					bankCode: selectedBank.code || '',
-					accountNumber: accountNumber,
-					country: fiat.country,
-				})
-			} else {
-				bankLookup.mutate({
-					phoneNumber: accountNumber,
-					country: fiat.country,
-					mobileNetwork: selectedBank.code
-				})
-			}
-		}
-	}, [accountNumber, selectedBank])
+  useEffect(() => {
+    if (
+      selectedBank &&
+      accountNumber &&
+      accountNumber.length >= fiat.mobileLength
+    ) {
+      if (fiat.country === 'NG') {
+        bankLookup.mutate({
+          bankCode: selectedBank.code || '',
+          accountNumber: accountNumber,
+          country: fiat.country,
+        })
+      } else {
+        bankLookup.mutate({
+          phoneNumber: accountNumber,
+          country: fiat.country,
+          mobileNetwork: selectedBank.code,
+        })
+      }
+    }
+  }, [accountNumber, selectedBank])
 
-	useEffect(() => {
-		if (sendToken) {
-			rate.mutate({
-				asset: sendToken.id,
-				country: fiat.country,
-				currency: fiat.currency
-			})
-		}
-		setAccountNumber('')
-		setSelectedBank(null)
-		bankLookup.reset()
-		queryClient.invalidateQueries({queryKey: ['bankList']})
-	}, [sendToken, fiat])
+  useEffect(() => {
+    if (sendToken) {
+      rate.mutate({
+        asset: sendToken.id,
+        country: fiat.country,
+        currency: fiat.currency,
+      })
+    }
+    setAccountNumber('')
+    setSelectedBank(null)
+    bankLookup.reset()
+    queryClient.invalidateQueries({ queryKey: ['bankList'] })
+  }, [sendToken, fiat])
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
@@ -98,34 +109,58 @@ function Home() {
     }
   }
 
+  useEffect(() => {
+    if (rate.data && sendToken) {
+      if (sendAmount && !Number.isNaN(Number.parseFloat(sendAmount))) {
+        const amount = Number.parseFloat(sendAmount)
+        const received = amount * (rate.data.rate)
+        setReceiveAmount(
+          received.toLocaleString('en-US', {
+            maximumFractionDigits: 2,
+          }),
+        )
+      } else {
+        setReceiveAmount('')
+      }
+    }
+  }, [rate.data, rate, sendAmount, receiveAmount, sendToken])
+
   const handleSwap = async () => {
-		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data) return
-		const amount = Number.parseFloat(sendAmount)
-		const receivingAmount = amount * (rate.data?.rate ?? 1)
-		console.log(`Amounts, send, receive, fiat, bank`, sendAmount, amount, receivingAmount, receiveAmount, fiat, selectedBank)
+    if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data)
+      return
+    const amount = Number.parseFloat(sendAmount)
+    const receivingAmount = amount * (rate.data?.rate ?? 1)
+    console.log(
+      `Amounts, send, receive, fiat, bank`,
+      sendAmount,
+      amount,
+      receivingAmount,
+      receiveAmount,
+      fiat,
+      selectedBank,
+    )
 
-		if (fiat.country === "NG") {
-			initiate.mutate({
-				asset: sendToken?.id || '',
-				amount: Math.round(amount),
-				bankCode: bankLookup.data.bank_code,
-				accountName: bankLookup.data.account_name,
-				accountNumber: bankLookup.data.account_number,
-				country: fiat.country,
-				currency: fiat.currency,
-			})
-		} else {
-			initiate.mutate({
-				asset: sendToken?.id || '',
-				amount: Math.round(amount),
-				accountName: bankLookup.data.account_name,
-				mobileNetwork: bankLookup.data.mobile_network,
-				mobileNumber: bankLookup.data.phone_number,
-				country: fiat.country,
-				currency: fiat.currency,
-			})
-		}
-
+    if (fiat.country === 'NG') {
+      initiate.mutate({
+        asset: sendToken?.id || '',
+        amount: Math.round(amount),
+        bankCode: bankLookup.data.bank_code,
+        accountName: bankLookup.data.account_name,
+        accountNumber: bankLookup.data.account_number,
+        country: fiat.country,
+        currency: fiat.currency,
+      })
+    } else {
+      initiate.mutate({
+        asset: sendToken?.id || '',
+        amount: Math.round(amount),
+        accountName: bankLookup.data.account_name,
+        mobileNetwork: bankLookup.data.mobile_network,
+        mobileNumber: bankLookup.data.phone_number,
+        country: fiat.country,
+        currency: fiat.currency,
+      })
+    }
   }
 
   console.log(`Address`, { address })
@@ -139,7 +174,7 @@ function Home() {
               handleSendAmountChange={handleSendAmountChange}
               sendAmount={sendAmount}
               setIsTokenModalOpen={setIsTokenModalOpen}
-							sendToken={sendToken}
+              sendToken={sendToken}
               rate={rate.data?.rate}
             />
             <MiddleToggle />
@@ -157,9 +192,9 @@ function Home() {
             setIsBankModalOpen={setIsBankModalOpen}
             selectedbank={selectedBank}
             accountNumber={accountNumber}
-						onAccountNumberChange={setAccountNumber}
-						accountName={bankLookup.data?.account_name}
-						isFetching={bankLookup.isPending}
+            onAccountNumberChange={setAccountNumber}
+            accountName={bankLookup.data?.account_name}
+            isFetching={bankLookup.isPending}
             fiat={fiat}
           />
         </div>
@@ -169,29 +204,46 @@ function Home() {
             onClick={handleSwap}
             size="lg"
             disabled={
-              !sendAmount || !selectedBank || !accountNumber || initiate.isPending
+              !sendAmount ||
+              !selectedBank ||
+              !accountNumber ||
+              initiate.isPending
             }
             className="w-full max-h-18 h-full bg-accent text-secondary font-semibold rounded-xl py-4 flex items-center justify-center gap-2"
           >
-            {!sendToken? 'Choose asset to send' : !accountNumber ? 'Enter account number' : ''}
-            {accountNumber && sendToken && !initiate.isPending && 'Create transfer'}
-						{accountNumber && sendToken && initiate.isPending && <>
-							<Loader2 className='animate-spin' />
-							<span>Creating transfer...</span>
-            </>}
+            {!sendToken
+              ? 'Choose asset to send'
+              : !accountNumber
+                ? 'Enter account number'
+                : ''}
+            {accountNumber &&
+              sendToken &&
+              !initiate.isPending &&
+              'Create transfer'}
+            {accountNumber && sendToken && initiate.isPending && (
+              <>
+                <Loader2 className="animate-spin" />
+                <span>Creating transfer...</span>
+              </>
+            )}
           </Button>
         )}
         {address && (
           <div className="bg-secondary text-primary rounded-xl p-4 border border-primary/20 flex items-center justify-between shadow-sm">
             <div className="">
               <h3 className="m-0! text-primary text-sm font-semibold">
-                Transfer {sendAmount}{' '}
-                {sendToken?.code.toUpperCase()} to
+                Transfer {sendAmount} {sendToken?.code.toUpperCase()} to
               </h3>
-              <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">{address}</span>
+              <span className="text-xs line-clamp-1 text-ellipsis max-w-3xs">
+                {address}
+              </span>
             </div>
-						<div className="flex items-center gap-1">
-							<CopyButton content={address} className="bg-accent rounded-full" size="icon-sm" />
+            <div className="flex items-center gap-1">
+              <CopyButton
+                content={address}
+                className="bg-accent rounded-full"
+                size="icon-sm"
+              />
               <Button
                 variant="default"
                 size="icon-sm"
@@ -201,36 +253,41 @@ function Home() {
               </Button>
             </div>
           </div>
-				)}
-				{quote.data && (
-					<div className='flex items-center justify-between'>
-						<span>Swap {sendAmount} {sendToken?.code.toUpperCase()} to {receiveAmount} {receiveCurrency?.symbol}</span>
-						<span>Estimated time: <b>1 minute, 30 seconds</b></span>
-					</div>
+        )}
+        {quote.data && (
+          <div className="flex items-center justify-between">
+            <span>
+              Swap {sendAmount} {sendToken?.code.toUpperCase()} to{' '}
+              {receiveAmount} {receiveCurrency?.symbol}
+            </span>
+            <span>
+              Estimated time: <b>1 minute, 30 seconds</b>
+            </span>
+          </div>
         )}
       </div>
 
       <TokenSelectorModal
         open={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-				onSelect={setSendToken}
+        onSelect={setSendToken}
         onNetworkSelect={setSelectedNetwork}
-				sendToken={sendToken}
-				selectedNetwork={selectedNetwork}
-			/>
+        sendToken={sendToken}
+        selectedNetwork={selectedNetwork}
+      />
 
-			<FiatSelectorModal
-				onClose={() => setIsFiatModalOpen(false)}
-				open={isFiatModalOpen}
-				onFiatSelect={setFiat}
-				selectedFiat={fiat}
-			/>
+      <FiatSelectorModal
+        onClose={() => setIsFiatModalOpen(false)}
+        open={isFiatModalOpen}
+        onFiatSelect={setFiat}
+        selectedFiat={fiat}
+      />
 
-			<BankSelectorModal
+      <BankSelectorModal
         open={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
         onSelect={setSelectedBank}
-				selectedBank={selectedBank}
+        selectedBank={selectedBank}
         fiat={fiat}
       />
     </>

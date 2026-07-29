@@ -100,7 +100,7 @@ export const offrampRateMutationOptions = mutationOptions({
     toast.error(`Failed to get rate`, {
       description: error.message,
     })
-  },
+	},
 })
 
 export const offrampQuoteMutationOptions = mutationOptions({

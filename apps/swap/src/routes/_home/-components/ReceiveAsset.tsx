@@ -31,7 +31,7 @@ const ReceiveComponent = ({
           )}
         />
         <span className="text-secondary-foreground/60 text-xs">
-          {fiat.currency}{receiveAmount*(rate || 1) || '0.00'}
+          {fiat.currency} {receiveAmount || '0.00'}
         </span>
       </div>
       <div className="flex-1 flex flex-col items-center gap-3">
