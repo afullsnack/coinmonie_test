@@ -20,6 +20,7 @@ export type Network = {
 	name: string;
 	type: string;
 	url?: string;
+	[key: string]: any
 }
 export type Asset = {
 	id: string;
@@ -44,12 +45,18 @@ export const LOCAL = [
 	{ currency: "NGN", country: "NG", name: "Nigerian Naira", url: `/nigeria.png` },
 	{ currency: "GHS", country: "GH", name: "Ghanaian Cedi", url: `/ghana.png` },
 	{ currency: "KES", country: "KE", name: "Kenyan Shilings", url: `/kenya.png` },
-	{ currency: "GMD", country: "GM", name: "Gambia", url: `gambia.png` },
-	{ currency: "XAF", country: "GA", name: "Garbon", url: `garbon.png` },
-	{ currency: "XOF", country: "SN", name: "Senegal", url: `senegal.png` },
-	{ currency: "XOF", country: "CI", name: "Ivory Coast", url: `ivory-coast.png` },
+	{ currency: "GMD", country: "GM", name: "Gambian Dalasi", url: `gambia.png` },
+	{ currency: "XAF", country: "GA", name: "Garbon (Franc)", url: `garbon.png` },
+	{ currency: "XOF", country: "SN", name: "Senegal (Franc)", url: `senegal.png` },
+	{ currency: "XOF", country: "CI", name: "Ivory Coast (Franc)", url: `ivory-coast.png` },
 ];
 
+export type Fiat = {
+	currency: string;
+	country: string;
+	name: string;
+	url: string;
+}
 
 export interface Transaction {
   status: "COMPLETED" | "PENDING" | "FAILED";
