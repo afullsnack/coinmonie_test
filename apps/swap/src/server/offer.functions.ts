@@ -184,6 +184,24 @@ export const getInstitution = createServerFn()
 		}
 	})
 
+// Intentionally minimal: only status + hash, keyed by the unguessable
+// reference UUID, so the client can poll for completion without exposing
+// any beneficiary PII (contrast with the old getTransactionByReference,
+// which returned the whole row unauthenticated).
+export const getTransactionStatus = createServerFn({ method: 'GET' })
+	.validator(z.object({ reference: z.string() }))
+	.handler(async ({ data }) => {
+		await enforceRateLimit(getRequest(), 'getTransactionStatus', 30, 60_000)
+		const transaction = await db.query.transactions.findFirst({
+			where: (transactions, { eq }) => eq(transactions.reference, data.reference),
+			columns: { status: true, transactionHash: true },
+		})
+		if (!transaction) {
+			throw new Error('Transaction not found')
+		}
+		return transaction
+	})
+
 export const history = createServerFn({method: "GET"})
 	.validator(z.object({
 		depositAddress: z.string(),
@@ -208,7 +226,8 @@ export const history = createServerFn({method: "GET"})
 				reference: transaction.reference,
 				youWillSend: { amount: Number(transaction.sourceAmount), currency: transaction.sourceCurrency },
 				youWillReceive: { amount: Number(transaction.destAmount), currency: transaction.destCurrency },
-				status: transaction.status
+				status: transaction.status,
+				transactionHash: transaction.transactionHash,
 			}))
 		}
 		catch (error: any) {

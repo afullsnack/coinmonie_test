@@ -11,6 +11,7 @@ import {
   getInstitution,
   getQuote,
   getRate,
+  getTransactionStatus,
   history,
   initiateOffer,
 } from '#/server/offer.functions'
@@ -115,6 +116,16 @@ export const getHistoryQueryOptions = (depositAddresses: string[]) => queryOptio
   },
   enabled: depositAddresses.length > 0,
   initialData: [],
+})
+
+export const transactionStatusQueryOptions = (reference: string | null) => queryOptions({
+  queryKey: ['transactionStatus', reference],
+  queryFn: async () => await getTransactionStatus({ data: { reference: reference! } }),
+  enabled: Boolean(reference),
+  refetchInterval: (query) => {
+    const status = query.state.data?.status
+    return status === 'COMPLETED' || status === 'FAILED' ? false : 5_000
+  },
 })
 
 export const enabledCurrenciesQueryOptions = queryOptions({

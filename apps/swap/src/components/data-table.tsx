@@ -39,6 +39,7 @@ import type {
   VisibilityState,
 } from '@tanstack/react-table'
 import { z } from 'zod'
+import { toast } from 'sonner'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Label } from '#/components/ui/label'
@@ -67,6 +68,7 @@ export const schema = z.object({
     currency: z.string(),
   }),
   status: z.string(),
+  transactionHash: z.string().nullable(),
 })
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
@@ -166,6 +168,27 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         {row.original.status}
       </span>
     ),
+  },
+  {
+    accessorKey: 'transactionHash',
+    header: () => <div className="w-full text-left font-semibold">Tx hash</div>,
+    cell: ({ row }) => {
+      const hash = row.original.transactionHash
+      if (!hash) return <span className="text-muted-foreground">—</span>
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            navigator.clipboard.writeText(hash)
+            toast.success('Transaction hash copied')
+          }}
+          className="font-mono text-xs hover:text-accent transition-colors max-w-28 truncate block text-left"
+        >
+          {hash}
+        </button>
+      )
+    },
   },
 ]
 

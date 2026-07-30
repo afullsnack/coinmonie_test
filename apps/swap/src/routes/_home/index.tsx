@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useRouteContext } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { Copy, Loader2, QrCode } from 'lucide-react'
+import { CheckCircle2, Copy, Loader2, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
-import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions } from '#/lib/api-client'
+import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions, transactionStatusQueryOptions } from '#/lib/api-client'
 import { addMyDepositAddress } from '#/lib/my-transactions'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
 import { QrCodeModal } from '#/components/qrcode-address-modal'
-import QuoteCountdown from './-components/QuoteCountdown'
 import WaitlistSignup from './-components/WaitlistSignup'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
@@ -43,7 +42,6 @@ function Home() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
   const [reference, setReference] = useState<string | null>(null)
-  const [expiry, setExpiry] = useState<string | null>(null)
 	const rate = useMutation(offrampRateMutationOptions)
 	const quote = useMutation(offrampQuoteMutationOptions)
 	const initiate = useMutation({
@@ -51,11 +49,12 @@ function Home() {
 		onSuccess(data) {
 			setAddress(data.deposit.address)
 			setReference(data.reference)
-			setExpiry(quote.data?.expiry ?? null)
 			addMyDepositAddress(data.deposit.address)
 		},
 	})
 	const bankLookup = useMutation(bankLookUpMutationOptions)
+	const transactionStatus = useQuery(transactionStatusQueryOptions(reference))
+	const isCompleted = transactionStatus.data?.status === 'COMPLETED'
 
 	useEffect(() => {
 		if (!fiat && currencies.data.length > 0) {
@@ -260,7 +259,66 @@ function Home() {
             )}
           </Button>
         )}
-        {address && (
+        {address && isCompleted && (
+          <div className="bg-secondary text-primary rounded-xl p-5 border border-border">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-accent/10 text-accent shrink-0">
+                <CheckCircle2 className="size-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="m-0! text-primary text-lg font-bold">Transfer successful</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {sendAmount} {sendToken?.code.toUpperCase()} delivered
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-2 text-sm">
+              <div className="flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
+                <span className="text-xs text-muted-foreground">Reference</span>
+                <span className="font-mono text-xs truncate">{reference}</span>
+              </div>
+              {transactionStatus.data?.transactionHash && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(transactionStatus.data!.transactionHash!)
+                    toast.success('Transaction hash copied')
+                  }}
+                  className="flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3 text-left hover:bg-primary-foreground/10 transition-colors"
+                >
+                  <span className="text-xs text-muted-foreground shrink-0">Tx hash</span>
+                  <span className="font-mono text-xs truncate">{transactionStatus.data.transactionHash}</span>
+                  <Copy className="size-3.5 text-muted-foreground shrink-0" />
+                </button>
+              )}
+            </div>
+
+            <Button
+              className="mt-4 w-full rounded-xl bg-accent text-accent-foreground"
+              onClick={() => {
+                const hash = transactionStatus.data?.transactionHash
+                const summary = [
+                  `Coinmonie transfer receipt`,
+                  `${sendAmount} ${sendToken?.code.toUpperCase()} → completed`,
+                  `Reference: ${reference}`,
+                  hash ? `Tx hash: ${hash}` : null,
+                ].filter(Boolean).join('\n')
+
+                if (navigator.share) {
+                  navigator.share({ title: 'Coinmonie receipt', text: summary }).catch(() => {})
+                } else {
+                  navigator.clipboard.writeText(summary)
+                  toast.success('Receipt copied')
+                }
+              }}
+            >
+              Share receipt
+            </Button>
+          </div>
+        )}
+
+        {address && !isCompleted && (
           <div className="bg-secondary text-primary rounded-xl p-5 border border-border">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -308,11 +366,14 @@ function Home() {
               )}
             </div>
 
-            {expiry && (
-              <p className="mt-2 text-xs font-medium">
-                <QuoteCountdown expiry={expiry} />
-              </p>
-            )}
+            <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" />
+              <span>
+                {transactionStatus.data?.status
+                  ? `Status: ${transactionStatus.data.status.replaceAll('_', ' ')}`
+                  : 'Waiting for deposit...'}
+              </span>
+            </div>
           </div>
 				)}
 
