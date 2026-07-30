@@ -41,7 +41,7 @@ const SendComponent = ({
                 : ''}
         </span>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3">
+      <div className="flex-1 flex flex-col items-end justify-center gap-3">
         <Button
           onClick={() => setIsTokenModalOpen(true)}
           className={cn(

@@ -63,19 +63,20 @@ async function handleWebhook(request: Request) {
 		return new Response('Invalid JSON', { status: 400 })
 	}
 
-	// Wallet webhooks are a flat payload; payment webhooks wrap the event in
-	// { success, message, timestamp, data: { reference, deposit, meta, ... } }.
-	const isWalletEvent = typeof json.hash === 'string' && typeof json.address === 'string'
-	const isPaymentEvent = typeof json.data?.reference === 'string'
+	// Payment webhooks are a flat payload: { status, reference, deposit, meta,
+	// source, destination, type, ... } — no wrapping envelope. Wallet-only
+	// events (raw deposit notifications) are also flat but lack `reference`.
+	const isPaymentEvent = typeof json.reference === 'string' && typeof json.status === 'string'
+	const isWalletEvent = !isPaymentEvent && typeof json.hash === 'string' && typeof json.address === 'string'
 
-	const paymentHash: string | null = isPaymentEvent ? json.data.meta?.hash ?? null : null
+	const paymentHash: string | null = isPaymentEvent ? json.meta?.hash ?? null : null
 
 	await db.insert(webhookEvents).values({
 		source: 'switch',
-		eventType: isWalletEvent ? 'wallet' : isPaymentEvent ? 'payment' : 'unknown',
-		reference: isPaymentEvent ? json.data.reference : null,
-		depositAddress: isWalletEvent ? json.address : (isPaymentEvent ? json.data.deposit?.address ?? null : null),
-		transactionHash: isWalletEvent ? json.hash : paymentHash,
+		eventType: isPaymentEvent ? 'payment' : isWalletEvent ? 'wallet' : 'unknown',
+		reference: isPaymentEvent ? json.reference : null,
+		depositAddress: isPaymentEvent ? json.deposit?.address ?? null : (isWalletEvent ? json.address : null),
+		transactionHash: isPaymentEvent ? paymentHash : (isWalletEvent ? json.hash : null),
 		signatureValid: true,
 		payload: json,
 	})
@@ -83,11 +84,11 @@ async function handleWebhook(request: Request) {
 	if (isPaymentEvent) {
 		await db.update(transactions)
 			.set({
-				status: json.data.status,
+				status: json.status,
 				...(paymentHash ? { transactionHash: paymentHash } : {}),
 			})
 			.where(and(
-				eq(transactions.reference, json.data.reference),
+				eq(transactions.reference, json.reference),
 				notInArray(transactions.status, TERMINAL_STATUSES),
 			))
 	}

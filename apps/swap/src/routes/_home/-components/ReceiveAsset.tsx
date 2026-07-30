@@ -37,7 +37,7 @@ const ReceiveComponent = ({
           {fiat?.currency}{receiveAmount || '0.00'}
         </span>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3">
+      <div className="flex-1 flex flex-col items-end justify-center gap-3">
         <Button
           onClick={() => setIsFiatModalOpen(true)}
           className="flex items-center gap-2 rounded-xl h-auto max-h-12 px-6! py-4 bg-accent"
