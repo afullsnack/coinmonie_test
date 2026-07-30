@@ -1,5 +1,6 @@
 import { Container, Main, Section } from '#/components/craft'
 import { Button } from '#/components/ui/button'
+import { InstallPrompt } from '#/components/install-prompt'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { Clock, Headphones, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -56,6 +57,7 @@ function Logo() {
 function RouteComponent() {
   return (
     <Main className="min-h-screen flex flex-col bg-secondary selection:bg-accent selection:text-secondary">
+      <InstallPrompt />
       <Section className='p-0!'>
         <Container className='max-w-lg p-0!'>
      			<header className="flex items-center justify-between px-4">
