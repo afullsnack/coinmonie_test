@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useRouteContext } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { CheckCircle2, Copy, Loader2, QrCode } from 'lucide-react'
+import { CheckCircle2, Copy, ExternalLink, Loader2, QrCode } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
@@ -279,18 +279,37 @@ function Home() {
                 <span className="font-mono text-xs truncate">{reference}</span>
               </div>
               {transactionStatus.data?.transactionHash && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(transactionStatus.data!.transactionHash!)
-                    toast.success('Transaction hash copied')
-                  }}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3 text-left hover:bg-primary-foreground/10 transition-colors"
-                >
+                <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
                   <span className="text-xs text-muted-foreground shrink-0">Tx hash</span>
-                  <span className="font-mono text-xs truncate">{transactionStatus.data.transactionHash}</span>
-                  <Copy className="size-3.5 text-muted-foreground shrink-0" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(transactionStatus.data!.transactionHash!)
+                      toast.success('Transaction hash copied')
+                    }}
+                    className="font-mono text-xs truncate flex-1 text-left hover:text-accent transition-colors"
+                  >
+                    {transactionStatus.data.transactionHash}
+                  </button>
+                  <Copy
+                    className="size-3.5 text-muted-foreground shrink-0 cursor-pointer hover:text-accent transition-colors"
+                    onClick={() => {
+                      navigator.clipboard.writeText(transactionStatus.data!.transactionHash!)
+                      toast.success('Transaction hash copied')
+                    }}
+                  />
+                  {transactionStatus.data.explorerUrl && (
+                    <a
+                      href={transactionStatus.data.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-accent transition-colors shrink-0"
+                      aria-label="View on block explorer"
+                    >
+                      <ExternalLink className="size-3.5" />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
 

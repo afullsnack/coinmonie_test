@@ -70,6 +70,7 @@ async function handleWebhook(request: Request) {
 	const isWalletEvent = !isPaymentEvent && typeof json.hash === 'string' && typeof json.address === 'string'
 
 	const paymentHash: string | null = isPaymentEvent ? json.meta?.hash ?? null : null
+	const explorerUrl: string | null = isPaymentEvent ? json.meta?.explorer_url ?? null : null
 
 	await db.insert(webhookEvents).values({
 		source: 'switch',
@@ -86,6 +87,7 @@ async function handleWebhook(request: Request) {
 			.set({
 				status: json.status,
 				...(paymentHash ? { transactionHash: paymentHash } : {}),
+				...(explorerUrl ? { explorerUrl } : {}),
 			})
 			.where(and(
 				eq(transactions.reference, json.reference),

@@ -194,7 +194,7 @@ export const getTransactionStatus = createServerFn({ method: 'GET' })
 		await enforceRateLimit(getRequest(), 'getTransactionStatus', 30, 60_000)
 		const transaction = await db.query.transactions.findFirst({
 			where: (transactions, { eq }) => eq(transactions.reference, data.reference),
-			columns: { status: true, transactionHash: true },
+			columns: { status: true, transactionHash: true, explorerUrl: true },
 		})
 		if (!transaction) {
 			throw new Error('Transaction not found')
@@ -228,6 +228,7 @@ export const history = createServerFn({method: "GET"})
 				youWillReceive: { amount: Number(transaction.destAmount), currency: transaction.destCurrency },
 				status: transaction.status,
 				transactionHash: transaction.transactionHash,
+				explorerUrl: transaction.explorerUrl,
 			}))
 		}
 		catch (error: any) {

@@ -118,6 +118,7 @@ export const transactions = pgTable(
 		mobileNumber: text("mobile_number"),
 		mobileNetwork: text("mobile_network"),
 		transactionHash: text("transaction_hash"),
+		explorerUrl: text("explorer_url"),
 		status: text("status").notNull().default("PENDING"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")

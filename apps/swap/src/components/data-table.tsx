@@ -19,6 +19,7 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   IconChevronLeft,
   IconChevronRight,
+  IconExternalLink,
   IconPlus,
 } from '@tabler/icons-react'
 import {
@@ -69,6 +70,7 @@ export const schema = z.object({
   }),
   status: z.string(),
   transactionHash: z.string().nullable(),
+  explorerUrl: z.string().nullable(),
 })
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
@@ -174,19 +176,34 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: () => <div className="w-full text-left font-semibold">Tx hash</div>,
     cell: ({ row }) => {
       const hash = row.original.transactionHash
+      const explorerUrl = row.original.explorerUrl
       if (!hash) return <span className="text-muted-foreground">—</span>
       return (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            navigator.clipboard.writeText(hash)
-            toast.success('Transaction hash copied')
-          }}
-          className="font-mono text-xs hover:text-accent transition-colors max-w-28 truncate block text-left"
-        >
-          {hash}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigator.clipboard.writeText(hash)
+              toast.success('Transaction hash copied')
+            }}
+            className="font-mono text-xs hover:text-accent transition-colors max-w-28 truncate block text-left"
+          >
+            {hash}
+          </button>
+          {explorerUrl && (
+            <a
+              href={explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-muted-foreground hover:text-accent transition-colors shrink-0"
+              aria-label="View on block explorer"
+            >
+              <IconExternalLink className="size-3.5" />
+            </a>
+          )}
+        </div>
       )
     },
   },
