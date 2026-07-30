@@ -45,7 +45,7 @@ const SendComponent = ({
         <Button
           onClick={() => setIsTokenModalOpen(true)}
           className={cn(
-            "flex items-center justify-between gap-2 rounded-xl h-auto max-h-12 px-3! py-4 bg-accent group",
+            "w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-3! py-4 bg-accent group",
             { "animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsToken },
           )}
         >

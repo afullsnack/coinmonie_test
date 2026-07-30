@@ -40,7 +40,7 @@ const ReceiveComponent = ({
       <div className="flex-1 flex flex-col items-end justify-center gap-3">
         <Button
           onClick={() => setIsFiatModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl h-auto max-h-12 px-6! py-4 bg-accent"
+          className="w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-6! py-4 bg-accent"
         >
           {fiat && (
             isFlagImage(fiat.url) ? (
