@@ -145,7 +145,13 @@ function Home() {
 				: amountUsd > payoutLimit.max
 					? `Max. amount is $${payoutLimit.max.toLocaleString('en-US')}`
 					: null
-			: providerAmountError
+			: (() => {
+					if (!providerAmountError) return null
+					const match = providerAmountError.match(/^(Minimum|Maximum) amount.*?([\d,.]+)/i)
+					if (!match) return providerAmountError
+					const label = match[1].toLowerCase() === 'minimum' ? 'Min.' : 'Max.'
+					return `${label} amount is $${match[2]}`
+				})()
 
 	const capDialogShownRef = useRef(false)
 	useEffect(() => {
