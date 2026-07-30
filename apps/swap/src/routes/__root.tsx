@@ -7,10 +7,11 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "next-themes";
+import { useEffect } from "react";
+import { ErrorDialog } from "#/components/error-dialog";
+import { Toaster } from "#/components/ui/sonner";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
-import { Toaster } from "#/components/ui/sonner";
-import { ErrorDialog } from "#/components/error-dialog";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -29,6 +30,26 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{
 				title: "Coinmonie",
 			},
+			{
+				name: "theme-color",
+				content: "#6045F4",
+			},
+			{
+				name: "mobile-web-app-capable",
+				content: "yes",
+			},
+			{
+				name: "apple-mobile-web-app-capable",
+				content: "yes",
+			},
+			{
+				name: "apple-mobile-web-app-status-bar-style",
+				content: "black-translucent",
+			},
+			{
+				name: "apple-mobile-web-app-title",
+				content: "Coinmonie",
+			},
 		],
 		links: [
 			{
@@ -39,19 +60,39 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				rel: "icon",
 				href: "/favicon.ico",
 			},
+			{
+				rel: "manifest",
+				href: "/manifest.webmanifest",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/apple-touch-icon.png",
+			},
 		],
 	}),
 	shellComponent: RootDocument,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	useEffect(() => {
+		if ("serviceWorker" in navigator) {
+			navigator.serviceWorker.register("/sw.js").catch(() => {
+				// PWA install/offline support is a progressive enhancement; ignore failures.
+			});
+		}
+	}, []);
+
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="dark"
+					enableSystem={false}
+				>
 					{children}
 					<Toaster position="top-center" closeButton />
 					<ErrorDialog />
