@@ -41,36 +41,38 @@ const SendComponent = ({
                 : ''}
         </span>
       </div>
-      <div className="flex-1 flex flex-col items-end justify-center gap-3">
-        <Button
-          onClick={() => setIsTokenModalOpen(true)}
-          className={cn(
-            "w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-3! py-4 bg-accent group",
-            { "animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsToken },
-          )}
-        >
-          {!sendToken && (
-            <span className="text-xs md:text-sm">Choose asset</span>
-          )}
-          {sendToken && (
-						<>
-							<div className="relative rounded-full w-6">
-	              <img
-	                src={sendToken.url}
-	                className="m-0! size-6! rounded-full object-contain"
-	              />
-	              <img
-	                src={sendToken.blockchain.url}
-	                className="m-0! size-3! rounded-full object-contain absolute bottom-0 inset-e-0 border border-accent group-hover:border-primary"
-	              />
-							</div>
-              <span className="text-accent-foreground font-medium">
-                {sendToken.code.toUpperCase()}
-              </span>
-            </>
-          )}
-          <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-				</Button>
+      <div className="flex-1 flex flex-col items-end gap-3">
+        <div className="h-12 md:h-20 flex items-center">
+          <Button
+            onClick={() => setIsTokenModalOpen(true)}
+            className={cn(
+              "w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-3! py-4 bg-accent group",
+              { "animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsToken },
+            )}
+          >
+            {!sendToken && (
+              <span className="text-xs md:text-sm">Choose asset</span>
+            )}
+            {sendToken && (
+							<>
+								<div className="relative rounded-full w-6">
+		              <img
+		                src={sendToken.url}
+		                className="m-0! size-6! rounded-full object-contain"
+		              />
+		              <img
+		                src={sendToken.blockchain.url}
+		                className="m-0! size-3! rounded-full object-contain absolute bottom-0 inset-e-0 border border-accent group-hover:border-primary"
+		              />
+								</div>
+                <span className="text-accent-foreground font-medium">
+                  {sendToken.code.toUpperCase()}
+                </span>
+              </>
+            )}
+            <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+					</Button>
+				</div>
 				<span className="text-[10px] font-semibold text-center h-3.5">
 					{sendToken ? `${sendToken.code} on ${sendToken.blockchain.name}` : ''}
 				</span>

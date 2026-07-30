@@ -37,24 +37,26 @@ const ReceiveComponent = ({
           {fiat?.currency}{receiveAmount || '0.00'}
         </span>
       </div>
-      <div className="flex-1 flex flex-col items-end justify-center gap-3">
-        <Button
-          onClick={() => setIsFiatModalOpen(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-6! py-4 bg-accent"
-        >
-          {fiat && (
-            isFlagImage(fiat.url) ? (
-              <img
-                src={fiat.url}
-                className="size-6 rounded-full object-contain"
-              />
-            ) : (
-              <span className="text-lg leading-none" aria-hidden="true">{fiat.url}</span>
-            )
-          )}
-          <span className="text-xs md:text-sm text-secondary">{fiat?.currency ?? 'Choose currency'}</span>
-          <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-				</Button>
+      <div className="flex-1 flex flex-col items-end gap-3">
+        <div className="h-12 md:h-20 flex items-center">
+          <Button
+            onClick={() => setIsFiatModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 rounded-xl h-auto max-h-12 px-6! py-4 bg-accent"
+          >
+            {fiat && (
+              isFlagImage(fiat.url) ? (
+                <img
+                  src={fiat.url}
+                  className="size-6 rounded-full object-contain"
+                />
+              ) : (
+                <span className="text-lg leading-none" aria-hidden="true">{fiat.url}</span>
+              )
+            )}
+            <span className="text-xs md:text-sm text-secondary">{fiat?.currency ?? 'Choose currency'}</span>
+            <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+					</Button>
+				</div>
         <span className="text-[10px] font-semibold text-center h-3.5">{fiat?.name ?? ''}</span>
       </div>
     </div>
