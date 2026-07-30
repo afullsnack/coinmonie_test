@@ -26,7 +26,7 @@ const WaitlistSignup = () => {
     return (
       <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
         <CheckCircle2 className="size-4 text-accent" />
-        You're on the list — we'll keep you posted.
+        You're subscribed — we'll send you rate alerts and product updates.
       </div>
     )
   }
@@ -53,7 +53,7 @@ const WaitlistSignup = () => {
           disabled={join.isPending}
           className="rounded-xl bg-accent text-accent-foreground shrink-0"
         >
-          {join.isPending ? 'Joining...' : 'Join waitlist'}
+          {join.isPending ? 'Submitting...' : 'Notify me'}
         </Button>
       </div>
       {showEmailError && (
