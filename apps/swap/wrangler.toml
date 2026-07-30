@@ -1,11 +1,3 @@
 name = "coinmonie-swap"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
-
-# Bind a KV namespace named RATE_LIMIT_KV so rate limits are shared across
-# Workers isolates instead of falling back to per-isolate in-memory buckets.
-# Create it with: wrangler kv namespace create RATE_LIMIT_KV
-# Then paste the returned id below.
-[[kv_namespaces]]
-binding = "RATE_LIMIT_KV"
-id = "45396d26e10045dc95a0cc5eba71abfe"
