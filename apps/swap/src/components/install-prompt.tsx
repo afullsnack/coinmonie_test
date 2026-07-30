@@ -75,29 +75,24 @@ export function InstallPrompt() {
 	if (!visible) return null;
 
 	return (
-		<div className="sticky top-0 z-50 w-full bg-primary text-primary-foreground">
+		<div className="sticky top-0 z-50 w-full border-b bg-background text-foreground">
 			<div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-2.5">
-				<Download className="size-5 shrink-0" />
-				<p className="flex-1 text-sm font-medium">Install</p>
-				<Button
-					size="sm"
-					variant="secondary"
-					className="shrink-0"
-					onClick={install}
-				>
+				<Download className="size-4 shrink-0 text-muted-foreground" />
+				<p className="flex-1 text-sm font-medium">Get the app</p>
+				<Button size="sm" className="shrink-0" onClick={install}>
 					Install
 				</Button>
 				<button
 					type="button"
 					aria-label="Dismiss install prompt"
-					className="shrink-0 opacity-70 hover:opacity-100"
+					className="shrink-0 text-muted-foreground hover:text-foreground"
 					onClick={dismiss}
 				>
 					<X className="size-4" />
 				</button>
 			</div>
 			{showIosHint && (
-				<div className="mx-auto flex max-w-lg items-center gap-2 border-t border-primary-foreground/20 px-4 py-2 text-xs">
+				<div className="mx-auto flex max-w-lg items-center gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
 					<Share className="size-4 shrink-0" />
 					<span>Tap Share, then "Add to Home Screen"</span>
 					<button
