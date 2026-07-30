@@ -12,6 +12,12 @@ import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import {formatDistanceToNow} from "date-fns"
 
+// Retrying the same submission (double-click, client-side retry on a flaky
+// network) must not create a second real transaction/deposit address at
+// Switch — there's no idempotency key support upstream, so we dedupe on the
+// input shape ourselves before ever calling their API.
+const DUPLICATE_SUBMISSION_WINDOW_MS = 30_000
+
 const SWITCH_API_URL = env.SWITCH_API_URL
 
 function isMaskedName(name: string | undefined): boolean {
@@ -107,7 +113,6 @@ export const bankLookup = createServerFn({ method: 'POST' })
     }),
   )
   .handler(async ({ data }) => {
-    await enforceRateLimit(getRequest(), 'bankLookup', 20, 60_000)
     try {
       const { data: lookupBank, error } = await betterFetch<{
         success: boolean
@@ -196,7 +201,6 @@ export const getInstitution = createServerFn()
 export const getTransactionStatus = createServerFn({ method: 'GET' })
 	.validator(z.object({ reference: z.string() }))
 	.handler(async ({ data }) => {
-		await enforceRateLimit(getRequest(), 'getTransactionStatus', 30, 60_000)
 		const transaction = await db.query.transactions.findFirst({
 			where: (transactions, { eq }) => eq(transactions.reference, data.reference),
 			columns: { status: true, transactionHash: true, asset: true },
@@ -214,7 +218,6 @@ export const history = createServerFn({method: "GET"})
 		page: z.number().optional()
 	}))
 	.handler(async ({ data }) => {
-		await enforceRateLimit(getRequest(), 'history', 40, 60_000)
 		try {
 			const rows = await db.query.transactions.findMany({
 				where: (transactions, { eq, and, ne }) => and(
@@ -361,7 +364,6 @@ export const getQuote = createServerFn()
     }),
   )
   .handler(async ({ data }) => {
-    await enforceRateLimit(getRequest(), 'getQuote', 40, 60_000)
     try {
       const developerFee = await getDeveloperFee()
       const { data: quote, error } = await betterFetch<{
@@ -439,6 +441,27 @@ export const initiateOffer = createServerFn()
   .handler(async ({ data }) => {
     await enforceRateLimit(getRequest(), 'initiateOffer', 10, 60_000)
     try {
+      const recipient = data.mobileNumber ?? data.accountNumber ?? null
+      if (recipient) {
+        const recentDuplicate = await db.query.transactions.findFirst({
+          where: (t, { eq: eqCol, gt: gtCol, and: andCols, or }) =>
+            andCols(
+              eqCol(t.asset, data.asset),
+              eqCol(t.sourceAmount, String(data.amount)),
+              or(eqCol(t.mobileNumber, recipient), eqCol(t.accountNumber, recipient)),
+              gtCol(t.createdAt, new Date(Date.now() - DUPLICATE_SUBMISSION_WINDOW_MS)),
+            ),
+          orderBy: (t, { desc }) => desc(t.createdAt),
+        })
+        if (recentDuplicate) {
+          return {
+            status: recentDuplicate.status,
+            reference: recentDuplicate.reference,
+            deposit: { address: recentDuplicate.depositAddress },
+          }
+        }
+      }
+
       const isCappedAsset = ['USDT', 'USDC'].some((s) => data.asset.toUpperCase().includes(s))
       const transactionLimit = await getTransactionLimit()
       if (isCappedAsset && transactionLimit.enabled && data.amount > transactionLimit.limitUsd) {
@@ -551,7 +574,6 @@ export const getRate = createServerFn()
     }),
   )
   .handler(async ({ data }) => {
-    await enforceRateLimit(getRequest(), 'getRate', 40, 60_000)
     try {
       const { data: rate, error } = await betterFetch<{
         success: boolean
