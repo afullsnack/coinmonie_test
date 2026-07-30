@@ -9,7 +9,9 @@ import {
   adminWebhookConfigQueryOptions,
   adminWebhookEventsQueryOptions,
   developerFeeSettingsQueryOptions,
+  transactionLimitSettingsQueryOptions,
   updateDeveloperFeeSettingsMutationOptions,
+  updateTransactionLimitSettingsMutationOptions,
 } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
@@ -184,6 +186,75 @@ function DeveloperFeeCard({ canManage }: { canManage: boolean }) {
   )
 }
 
+function TransactionLimitCard({ canManage }: { canManage: boolean }) {
+  const queryClient = useQueryClient()
+  const settings = useQuery(transactionLimitSettingsQueryOptions)
+  const [enabled, setEnabled] = useState(true)
+  const [limitUsd, setLimitUsd] = useState('1000')
+
+  useEffect(() => {
+    if (settings.data) {
+      setEnabled(settings.data.enabled)
+      setLimitUsd(String(settings.data.limitUsd))
+    }
+  }, [settings.data])
+
+  const update = useMutation({
+    ...updateTransactionLimitSettingsMutationOptions,
+    onSuccess: () => {
+      toast.success('Transaction limit updated')
+      queryClient.invalidateQueries({ queryKey: ['admin', 'transactionLimitSettings'] })
+    },
+  })
+
+  const hasChanges = settings.data
+    && (enabled !== settings.data.enabled || Number(limitUsd) !== settings.data.limitUsd)
+
+  return (
+    <div className="rounded-xl p-4 bg-card border border-border md:col-span-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Transaction limit</p>
+        {!canManage && (
+          <span className="text-xs text-muted-foreground">Read only</span>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <Switch checked={enabled} onCheckedChange={setEnabled} disabled={!canManage} />
+        <span className="text-sm text-foreground">{enabled ? 'Enabled' : 'Disabled'}</span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 max-w-xs">
+        <span className="text-sm text-muted-foreground">$</span>
+        <Input
+          type="number"
+          min={0}
+          step="1"
+          value={limitUsd}
+          onChange={(e) => setLimitUsd(e.target.value)}
+          disabled={!canManage}
+          className="rounded-xl"
+        />
+      </div>
+
+      {canManage && (
+        <Button
+          size="sm"
+          className="mt-3 rounded-xl bg-accent text-accent-foreground"
+          disabled={!hasChanges || update.isPending}
+          onClick={() => update.mutate({ enabled, limitUsd: Number(limitUsd) })}
+        >
+          {update.isPending ? 'Saving...' : 'Save changes'}
+        </Button>
+      )}
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        Caps the source amount for USDT/USDC transfers only (cNGN is unaffected) while KYC integration is pending. Takes effect immediately, no redeploy needed.
+      </p>
+    </div>
+  )
+}
+
 function AdminDashboard() {
   const { data: session } = authClient.useSession()
   const navigate = useNavigate()
@@ -296,7 +367,23 @@ function AdminDashboard() {
           )}
         </div>
 
+        <div className="rounded-xl p-4 bg-card border border-border">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Providers status</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Live uptime for Switch and other integrated providers.
+          </p>
+          <a
+            href="https://providers-status.coinmonie.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block text-sm text-accent hover:underline"
+          >
+            View status page →
+          </a>
+        </div>
+
         <DeveloperFeeCard canManage={admins.data?.canManage ?? false} />
+        <TransactionLimitCard canManage={admins.data?.canManage ?? false} />
       </div>
 
       <InputGroup className="mb-4 max-w-sm rounded-xl!">

@@ -5,6 +5,7 @@ import { transactions } from '#/db/schema'
 import { requireAdminSession } from '#/lib/require-admin-session'
 import { enforceRateLimit } from '#/lib/rate-limit'
 import { getDeveloperFee } from '#/lib/developer-fee'
+import { getTransactionLimit } from '#/lib/transaction-limit'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
@@ -39,6 +40,10 @@ const FILES = [
   'usdc.png',
   'usdt.png',
 ]
+
+export const getTransactionLimitConfig = createServerFn({ method: 'GET' }).handler(async () => {
+	return await getTransactionLimit()
+})
 
 export const enabledCurrencies = createServerFn({ method: 'GET' }).handler(async () => {
 	return LOCAL.filter((fiat) => env.FEATURE_FLAG_CURRENCIES.includes(fiat.currency))
@@ -434,6 +439,12 @@ export const initiateOffer = createServerFn()
   .handler(async ({ data }) => {
     await enforceRateLimit(getRequest(), 'initiateOffer', 10, 60_000)
     try {
+      const isCappedAsset = ['USDT', 'USDC'].some((s) => data.asset.toUpperCase().includes(s))
+      const transactionLimit = await getTransactionLimit()
+      if (isCappedAsset && transactionLimit.enabled && data.amount > transactionLimit.limitUsd) {
+        throw new Error(`Maximum amount per transaction is $${transactionLimit.limitUsd}`)
+      }
+
       const developerFee = await getDeveloperFee()
       const { data: quote, error } = await betterFetch<{
         success: boolean

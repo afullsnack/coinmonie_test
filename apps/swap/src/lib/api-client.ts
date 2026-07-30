@@ -11,6 +11,7 @@ import {
   getInstitution,
   getQuote,
   getRate,
+  getTransactionLimitConfig,
   getTransactionStatus,
   history,
   initiateOffer,
@@ -20,14 +21,16 @@ import {
   changeOwnPassword,
   deleteAdmin,
   getDeveloperFeeSettings,
+  getTransactionLimitSettings,
   listAdmins,
   resetAdminPassword,
   updateDeveloperFeeSettings,
+  updateTransactionLimitSettings,
 } from '#/server/admin.functions'
 import { adminListWaitlist, joinWaitlist } from '#/server/waitlist.functions'
 import { showErrorDialog } from '#/lib/error-dialog-store'
 
-function errorMessage(error: unknown, fallback: string): string {
+export function errorMessage(error: unknown, fallback: string): string {
   const message =
     error && typeof error === 'object' && 'message' in error
       ? String((error as { message?: unknown }).message ?? '')
@@ -171,6 +174,25 @@ export const updateDeveloperFeeSettingsMutationOptions = mutationOptions({
     await updateDeveloperFeeSettings({ data: values }),
   onError(error) {
     showErrorDialog(errorMessage(error, 'Failed to update developer fee.'))
+  },
+})
+
+export const transactionLimitConfigQueryOptions = queryOptions({
+  queryKey: ['transactionLimitConfig'],
+  queryFn: async () => await getTransactionLimitConfig(),
+})
+
+export const transactionLimitSettingsQueryOptions = queryOptions({
+  queryKey: ['admin', 'transactionLimitSettings'],
+  queryFn: async () => await getTransactionLimitSettings(),
+})
+
+export const updateTransactionLimitSettingsMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'updateTransactionLimitSettings'],
+  mutationFn: async (values: { enabled: boolean; limitUsd: number }) =>
+    await updateTransactionLimitSettings({ data: values }),
+  onError(error) {
+    showErrorDialog(errorMessage(error, 'Failed to update transaction limit.'))
   },
 })
 

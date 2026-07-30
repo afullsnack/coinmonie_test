@@ -31,7 +31,7 @@ const SendComponent = ({
             'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-primary font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',
           )}
         />
-        <span className={cn('text-xs h-4 block', amountError ? 'text-destructive' : 'text-muted-foreground')}>
+        <span className={cn('text-xs block truncate max-w-40', amountError ? 'text-destructive' : 'text-muted-foreground h-4')}>
           {amountError
             ? amountError
             : sendAmount && isUsdLoading

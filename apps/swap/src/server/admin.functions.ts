@@ -2,6 +2,7 @@ import { db } from '#/db'
 import { account, appSettings, user } from '#/db/schema'
 import { requireAdminSession, requireSuperAdminSession, isSuperAdmin } from '#/lib/require-admin-session'
 import { getDeveloperFee, DEVELOPER_FEE_ENABLED_KEY, DEVELOPER_FEE_PERCENT_KEY } from '#/lib/developer-fee'
+import { getTransactionLimit, TRANSACTION_LIMIT_ENABLED_KEY, TRANSACTION_LIMIT_USD_KEY } from '#/lib/transaction-limit'
 import { hashPassword } from 'better-auth/crypto'
 import { createServerFn } from '@tanstack/react-start'
 import { and, eq } from 'drizzle-orm'
@@ -27,6 +28,28 @@ export const updateDeveloperFeeSettings = createServerFn({ method: 'POST' })
 		await db.insert(appSettings)
 			.values({ key: DEVELOPER_FEE_PERCENT_KEY, value: String(data.percent) })
 			.onConflictDoUpdate({ target: appSettings.key, set: { value: String(data.percent) } })
+
+		return { success: true }
+	})
+
+export const getTransactionLimitSettings = createServerFn({ method: 'GET' })
+	.handler(async () => {
+		await requireAdminSession()
+		return await getTransactionLimit()
+	})
+
+export const updateTransactionLimitSettings = createServerFn({ method: 'POST' })
+	.validator(z.object({ enabled: z.boolean(), limitUsd: z.number().min(0) }))
+	.handler(async ({ data }) => {
+		await requireSuperAdminSession()
+
+		await db.insert(appSettings)
+			.values({ key: TRANSACTION_LIMIT_ENABLED_KEY, value: String(data.enabled) })
+			.onConflictDoUpdate({ target: appSettings.key, set: { value: String(data.enabled) } })
+
+		await db.insert(appSettings)
+			.values({ key: TRANSACTION_LIMIT_USD_KEY, value: String(data.limitUsd) })
+			.onConflictDoUpdate({ target: appSettings.key, set: { value: String(data.limitUsd) } })
 
 		return { success: true }
 	})

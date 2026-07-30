@@ -17,17 +17,19 @@ const FiatDestination = ({
 	accountName,
 	isFetching,
 	fiat,
+	disabled,
 }: any) => {
 	// const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
 	const needsBank = Boolean(accountNumber) && !selectedbank
 
 	return (
 		<>
-    <InputGroup className="h-[55px] border border-input/10 rounded-xl!">
+    <InputGroup className={cn("h-[55px] border border-input/10 rounded-xl!", { "opacity-50 pointer-events-none": disabled })}>
       <InputGroupAddon align="inline-start">
 				<Button
 					size="xs"
           onClick={() => setIsBankModalOpen(true)}
+					disabled={disabled}
 					className={cn("flex items-center text-xs md:text-sm bg-accent p-2! h-auto rounded-xl", {
 						"animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40": needsBank,
           })}
@@ -52,6 +54,7 @@ const FiatDestination = ({
 				onChange={(e) => onAccountNumberChange(e.target.value)}
 				placeholder={fiat?.country === "NG"? 'Account number' : 'Mobile number'}
 				maxLength={fiat?.mobileLength ?? 10}
+				disabled={disabled}
         className={cn(
           defaultInputStyle,
           'text-primary px-4 flex-1 md:text-xl max-w-xs h-auto bg-transparent placeholder:text-gray-400 placeholder:text-sm font-semibold focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none selection:bg-accent selection:text-secondary',

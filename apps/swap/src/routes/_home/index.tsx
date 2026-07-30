@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFileRoute, useRouteContext } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { CheckCircle2, Copy, ExternalLink, Loader2, QrCode } from 'lucide-react'
@@ -8,7 +8,7 @@ import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
 
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
-import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions, transactionStatusQueryOptions } from '#/lib/api-client'
+import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, errorMessage, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions, transactionLimitConfigQueryOptions, transactionStatusQueryOptions } from '#/lib/api-client'
 import { addMyDepositAddress } from '#/lib/my-transactions'
 import { getExplorerUrl } from '#/lib/explorer'
 import SendComponent from './-components/SendAsset'
@@ -19,6 +19,7 @@ import WaitlistSignup from './-components/WaitlistSignup'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
 import { toast } from 'sonner'
+import { dismissErrorDialog, showErrorDialog } from '#/lib/error-dialog-store'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -31,6 +32,7 @@ function Home() {
   const currencies = useQuery(enabledCurrenciesQueryOptions)
   const assets = useQuery(assetListQueryOptions)
   const coverage = useQuery(coverageQueryOptions)
+  const transactionLimit = useQuery(transactionLimitConfigQueryOptions)
   const [fiat, setFiat] = useState<Fiat | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
@@ -43,8 +45,21 @@ function Home() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
   const [reference, setReference] = useState<string | null>(null)
-	const rate = useMutation(offrampRateMutationOptions)
-	const quote = useMutation(offrampQuoteMutationOptions)
+	const [providerAmountError, setProviderAmountError] = useState<string | null>(null)
+	const rate = useMutation({
+		...offrampRateMutationOptions,
+		onError(error) {
+			setProviderAmountError(errorMessage(error, 'Please try again in a moment.'))
+			showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
+		},
+	})
+	const quote = useMutation({
+		...offrampQuoteMutationOptions,
+		onError(error) {
+			setProviderAmountError(errorMessage(error, 'Please try again in a moment.'))
+			showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
+		},
+	})
 	const initiate = useMutation({
 		...initiateOfframpMutationOptions,
 		onSuccess(data) {
@@ -107,20 +122,41 @@ function Home() {
 
   const handleSendAmountChange = (value: string) => {
     setSendAmount(value)
+    setProviderAmountError(null)
   }
+
+	useEffect(() => {
+		setProviderAmountError(null)
+	}, [sendToken, fiat])
 
 	const channel = fiat?.country === 'NG' ? 'BANK' : 'MOBILEMONEY'
 	const payoutLimit = fiat ? coverage.data[fiat.country]?.[channel] : undefined
 	const parsedSendAmount = Number.parseFloat(sendAmount)
 	const amountUsd = quote.data?.source.amount_usd ?? (Number.isNaN(parsedSendAmount) ? undefined : parsedSendAmount)
-	const amountError =
-		payoutLimit && typeof amountUsd === 'number'
+	const isCappedAsset = Boolean(sendToken) && ['USDT', 'USDC'].some((s) => sendToken!.code.toUpperCase().includes(s))
+	const transactionCap = transactionLimit.data?.enabled ? transactionLimit.data.limitUsd : undefined
+	const exceedsTransactionCap =
+		isCappedAsset && !Number.isNaN(parsedSendAmount) && typeof transactionCap === 'number' && parsedSendAmount > transactionCap
+	const amountError = exceedsTransactionCap
+		? `Max. amount is $${transactionCap!.toLocaleString('en-US')}`
+		: payoutLimit && typeof amountUsd === 'number'
 			? amountUsd < payoutLimit.min
-				? `Minimum amount is $${payoutLimit.min.toLocaleString('en-US')}`
+				? `Min. amount is $${payoutLimit.min.toLocaleString('en-US')}`
 				: amountUsd > payoutLimit.max
-					? `Maximum amount is $${payoutLimit.max.toLocaleString('en-US')}`
+					? `Max. amount is $${payoutLimit.max.toLocaleString('en-US')}`
 					: null
-			: null
+			: providerAmountError
+
+	const capDialogShownRef = useRef(false)
+	useEffect(() => {
+		if (exceedsTransactionCap && typeof transactionCap === 'number') {
+			showErrorDialog(`Maximum amount per transaction is $${transactionCap.toLocaleString('en-US')}`)
+			capDialogShownRef.current = true
+		} else if (capDialogShownRef.current) {
+			dismissErrorDialog()
+			capDialogShownRef.current = false
+		}
+	}, [exceedsTransactionCap, transactionCap])
 
 	useEffect(() => {
 		if (sendAmount && !Number.isNaN(Number.parseFloat(sendAmount)) && rate.data?.rate && !amountError) {
@@ -231,6 +267,7 @@ function Home() {
             accountName={bankLookup.data?.account_name}
             isFetching={bankLookup.isPending}
             fiat={fiat}
+            disabled={Boolean(amountError)}
           />
         </div>
 
