@@ -42,7 +42,7 @@ const SendComponent = ({
         </span>
       </div>
       <div className="flex-1 flex flex-col items-end gap-3">
-        <div className="h-12 md:h-20 flex items-center">
+        <div className="h-12 md:h-20 flex items-end pb-0 translate-y-[26px] md:translate-y-2">
           <Button
             onClick={() => setIsTokenModalOpen(true)}
             className={cn(
@@ -73,7 +73,7 @@ const SendComponent = ({
             <ChevronDownIcon className="w-4 h-4 text-gray-400" />
 					</Button>
 				</div>
-				<span className="text-[10px] font-semibold text-center h-3.5">
+				<span className="text-[10px] font-semibold text-center h-3.5 mt-[26px]">
 					{sendToken ? `${sendToken.code} on ${sendToken.blockchain.name}` : ''}
 				</span>
       </div>

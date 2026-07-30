@@ -33,9 +33,9 @@ const WaitlistSignup = () => {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 rounded-xl border border-border bg-card p-4">
-      <p className="text-sm font-semibold text-foreground">Stay updated</p>
+      <p className="text-sm font-semibold text-foreground">Stay in the loop</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Leave your email if you'd like to hear about new features and promotions. Optional — only if you're interested.
+        Leave your email to receive exclusive payout rate alerts and product updates.
       </p>
 
       <div className="mt-3 flex flex-col sm:flex-row gap-2">
