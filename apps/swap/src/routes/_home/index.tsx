@@ -10,6 +10,7 @@ import { MiddleToggle } from '#/components/MiddleToggle'
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
 import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions, transactionStatusQueryOptions } from '#/lib/api-client'
 import { addMyDepositAddress } from '#/lib/my-transactions'
+import { getExplorerUrl } from '#/lib/explorer'
 import SendComponent from './-components/SendAsset'
 import ReceiveComponent from './-components/ReceiveAsset'
 import FiatDestination from './-components/FiatDestination'
@@ -298,9 +299,9 @@ function Home() {
                       toast.success('Transaction hash copied')
                     }}
                   />
-                  {transactionStatus.data.explorerUrl && (
+                  {getExplorerUrl(transactionStatus.data.asset, transactionStatus.data.transactionHash) && (
                     <a
-                      href={transactionStatus.data.explorerUrl}
+                      href={getExplorerUrl(transactionStatus.data.asset, transactionStatus.data.transactionHash)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-accent transition-colors shrink-0"

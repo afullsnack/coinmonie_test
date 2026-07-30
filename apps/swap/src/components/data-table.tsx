@@ -55,6 +55,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { Link } from '@tanstack/react-router'
 import { cn } from '#/lib/utils'
+import { getExplorerUrl } from '#/lib/explorer'
 
 export const schema = z.object({
   // id: z.number(),
@@ -70,7 +71,7 @@ export const schema = z.object({
   }),
   status: z.string(),
   transactionHash: z.string().nullable(),
-  explorerUrl: z.string().nullable(),
+  asset: z.string().nullable(),
 })
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
@@ -176,7 +177,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: () => <div className="w-full text-left font-semibold">Tx hash</div>,
     cell: ({ row }) => {
       const hash = row.original.transactionHash
-      const explorerUrl = row.original.explorerUrl
+      const explorerUrl = getExplorerUrl(row.original.asset, hash)
       if (!hash) return <span className="text-muted-foreground">—</span>
       return (
         <div className="flex items-center gap-1.5">
