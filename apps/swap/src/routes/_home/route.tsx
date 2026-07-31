@@ -2,7 +2,7 @@ import { Container, Main, Section } from '#/components/craft'
 import { Button } from '#/components/ui/button'
 import { InstallPrompt } from '#/components/install-prompt'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
-import { Clock, Mail, Moon, Sun } from 'lucide-react'
+import { History, Mail, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
@@ -83,7 +83,7 @@ function RouteComponent() {
                 asChild
               >
                 <Link to='/transactions'>
-                  <Clock className="size-4 md:size-6 text-accent" />
+                  <History className="size-4 md:size-6 text-accent" />
                 </Link>
               </Button>
             </div>
