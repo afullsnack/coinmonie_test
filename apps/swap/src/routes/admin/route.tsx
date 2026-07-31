@@ -1,4 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
+import { useTheme } from 'next-themes'
+import { useEffect } from 'react'
 import { getAdminSession } from '#/server/admin-session.functions'
 import { Container, Main, Section } from '#/components/craft'
 
@@ -28,6 +30,12 @@ export const Route = createFileRoute('/admin')({
 })
 
 function RouteComponent() {
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setTheme('dark')
+  }, [setTheme])
+
   return (
     <Main className="min-h-screen flex flex-col bg-secondary selection:bg-accent selection:text-secondary">
       <Section className="p-0!">
