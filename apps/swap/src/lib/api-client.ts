@@ -99,7 +99,6 @@ export const assetListQueryOptions = queryOptions({
   retryOnMount: true,
   refetchOnWindowFocus: true,
   gcTime: 30_000_000,
-  // staleTime: 30_000,
   queryKey: ['assetList'],
   queryFn: async () => await assetList(),
   initialData: [],

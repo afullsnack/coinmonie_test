@@ -58,7 +58,6 @@ import { cn } from '#/lib/utils'
 import { getExplorerUrl } from '#/lib/explorer'
 
 export const schema = z.object({
-  // id: z.number(),
   date: z.string(),
   reference: z.string(),
   youWillSend: z.object({
@@ -75,37 +74,6 @@ export const schema = z.object({
 })
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  // {
-  //   id: "drag",
-  //   header: () => null,
-  // cell: ({ row }) => <DragHandle id={row.original.id} />,
-  // },
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && "indeterminate")
-  //         }
-  //         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //         aria-label="Select all"
-  //       />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center justify-center">
-  //       <Checkbox
-  //         checked={row.getIsSelected()}
-  //         onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //         aria-label="Select row"
-  //       />
-  //     </div>
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: 'date',
     header: () => (
@@ -332,7 +300,6 @@ export function DataTable({
           <DndContext
             collisionDetection={closestCenter}
             modifiers={[restrictToVerticalAxis]}
-            // onDragEnd={handleDragEnd}
             sensors={sensors}
             id={sortableId}
           >

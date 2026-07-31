@@ -7,7 +7,6 @@ import {
 } from '#/components/ui/input-group'
 import { cn, defaultInputStyle } from '#/lib/utils';
 import { ChevronDown, Loader2 } from 'lucide-react';
-// import { useState } from 'react';
 
 const FiatDestination = ({
 	setIsBankModalOpen,
@@ -19,7 +18,6 @@ const FiatDestination = ({
 	fiat,
 	disabled,
 }: any) => {
-	// const [bankEntry, setBankEntry] = useState<unknown[] | null>(null)
 	const needsBank = Boolean(accountNumber) && !selectedbank
 
 	return (

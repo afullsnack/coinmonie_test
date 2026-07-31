@@ -23,6 +23,14 @@ import { dismissErrorDialog, showErrorDialog } from '#/lib/error-dialog-store'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
+function statusColorClass(status: string | undefined): string {
+	if (status === 'FAILED') return 'text-destructive'
+	if (status === 'COMPLETED') return 'text-green-600 dark:text-green-400'
+	if (status === 'AWAITING_DEPOSIT' || status === 'PENDING' || status === 'PROCESSING')
+		return 'text-amber-600 dark:text-amber-400'
+	return 'text-muted-foreground'
+}
+
 function Home() {
   const queryClient = useRouteContext({
     from: '/_home/',
@@ -429,7 +437,7 @@ function Home() {
               )}
             </div>
 
-            <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${statusColorClass(transactionStatus.data?.status)}`}>
               <Loader2 className="size-3 animate-spin" />
               <span>
                 {transactionStatus.data?.status

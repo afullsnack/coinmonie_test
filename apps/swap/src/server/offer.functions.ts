@@ -12,15 +12,12 @@ import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import {formatDistanceToNow} from "date-fns"
 
-// Retrying the same submission (double-click, client-side retry on a flaky
-// network) must not create a second real transaction/deposit address at
-// Switch — there's no idempotency key support upstream, so we dedupe on the
-// input shape ourselves before ever calling their API.
+// Dedupe window to avoid double-submitting the same offer to Switch.
 const DUPLICATE_SUBMISSION_WINDOW_MS = 30_000
 
 const SWITCH_API_URL = env.SWITCH_API_URL
 
-function isMaskedName(name: string | undefined): boolean {
+export function isMaskedName(name: string | undefined): boolean {
 	return Boolean(name?.includes('*'))
 }
 
@@ -194,10 +191,7 @@ export const getInstitution = createServerFn()
 		}
 	})
 
-// Intentionally minimal: only status + hash, keyed by the unguessable
-// reference UUID, so the client can poll for completion without exposing
-// any beneficiary PII (contrast with the old getTransactionByReference,
-// which returned the whole row unauthenticated).
+// Only exposes status + hash, not PII, since it's unauthenticated.
 export const getTransactionStatus = createServerFn({ method: 'GET' })
 	.validator(z.object({ reference: z.string() }))
 	.handler(async ({ data }) => {

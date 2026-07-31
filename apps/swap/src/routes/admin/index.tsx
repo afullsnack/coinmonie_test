@@ -14,12 +14,13 @@ import {
   updateTransactionLimitSettingsMutationOptions,
 } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
+import { getExplorerUrl } from '#/lib/explorer'
 import { Button } from '#/components/ui/button'
 import { Badge } from '#/components/ui/badge'
 import { Switch } from '#/components/ui/switch'
 import { Input } from '#/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '#/components/ui/input-group'
-import { SearchIcon } from 'lucide-react'
+import { ExternalLink, SearchIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Drawer,
@@ -54,12 +55,16 @@ function StatCard({ label, value }: { label: string; value: string }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const variant = status === 'COMPLETED' ? 'default' : status === 'AWAITING_DEPOSIT' ? 'secondary' : 'outline'
+  const className =
+    status === 'COMPLETED'
+      ? 'bg-green-600/15 text-green-600 dark:text-green-400 border-transparent'
+      : status === 'FAILED'
+        ? 'bg-destructive/15 text-destructive border-transparent'
+        : status === 'AWAITING_DEPOSIT' || status === 'PENDING' || status === 'PROCESSING'
+          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-transparent'
+          : ''
   return (
-    <Badge
-      variant={variant}
-      className={status === 'COMPLETED' ? 'bg-accent text-accent-foreground' : ''}
-    >
+    <Badge variant="outline" className={className}>
       {status.replaceAll('_', ' ')}
     </Badge>
   )
@@ -452,7 +457,21 @@ function AdminDashboard() {
                     </TableCell>
                     <TableCell>
                       {transaction.transactionHash ? (
-                        <CopyableText value={transaction.transactionHash} truncate />
+                        <div className="flex items-center gap-1.5">
+                          <CopyableText value={transaction.transactionHash} truncate />
+                          {getExplorerUrl(transaction.asset, transaction.transactionHash) && (
+                            <a
+                              href={getExplorerUrl(transaction.asset, transaction.transactionHash)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-muted-foreground hover:text-accent transition-colors shrink-0"
+                              aria-label="View on block explorer"
+                            >
+                              <ExternalLink className="size-3.5" />
+                            </a>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
@@ -518,7 +537,20 @@ function AdminDashboard() {
                     <div>
                       <p className="text-xs uppercase text-muted-foreground font-medium mb-1">Transaction hash</p>
                       {transaction.transactionHash ? (
-                        <CopyableText value={transaction.transactionHash} />
+                        <div className="flex items-center gap-1.5">
+                          <CopyableText value={transaction.transactionHash} />
+                          {getExplorerUrl(transaction.asset, transaction.transactionHash) && (
+                            <a
+                              href={getExplorerUrl(transaction.asset, transaction.transactionHash)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-accent transition-colors shrink-0"
+                              aria-label="View on block explorer"
+                            >
+                              <ExternalLink className="size-3.5" />
+                            </a>
+                          )}
+                        </div>
                       ) : (
                         <p className="text-muted-foreground">N/A</p>
                       )}

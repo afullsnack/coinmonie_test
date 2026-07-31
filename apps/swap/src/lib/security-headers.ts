@@ -15,10 +15,7 @@ export function applySecurityHeaders(response: Response) {
 		"img-src 'self' data: https:",
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' data: https://fonts.gstatic.com",
-		// TanStack Start emits small inline bootstrap scripts (theme flash
-		// prevention, scroll restoration, SSR hydration bridge) even in
-		// production, so 'unsafe-inline' stays on for script-src. 'unsafe-eval'
-		// is dev-only — Vite's dev module runner needs it, production doesn't.
+		// unsafe-eval is dev-only, needed by Vite's module runner.
 		isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'",
 	].join('; '))
 

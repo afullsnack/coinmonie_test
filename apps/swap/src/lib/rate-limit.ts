@@ -2,14 +2,12 @@ import { env } from '#/env'
 
 type Bucket = { count: number; resetAt: number }
 
-// In-memory fallback for environments without a shared KV store (local dev,
-// or a single long-running Node process where per-instance memory is fine).
+// In-memory rate-limit buckets, per isolate.
 const memoryBuckets = new Map<string, Bucket>()
 let cleanupIntervalStarted = false
 
 function ensureCleanupInterval() {
-	// Workers forbid starting timers outside a request handler, so this is
-	// lazily started on first real use rather than at module load time.
+	// Lazy start: Workers forbid timers outside a request handler.
 	if (cleanupIntervalStarted) return
 	cleanupIntervalStarted = true
 	setInterval(() => {
@@ -35,10 +33,7 @@ function isRateLimitedInMemory(key: string, limit: number, windowMs: number): bo
 }
 
 export function getClientIp(request: Request): string {
-	// cf-connecting-ip is set by Cloudflare's edge and cannot be spoofed by the
-	// client. x-forwarded-for can be freely set by any caller, so it's only
-	// trusted as a fallback for non-Cloudflare deployments (e.g. behind a
-	// trusted reverse proxy), never preferred over it.
+	// cf-connecting-ip can't be spoofed by the client, unlike x-forwarded-for.
 	const cfConnectingIp = request.headers.get('cf-connecting-ip')
 	if (cfConnectingIp) return cfConnectingIp.trim()
 

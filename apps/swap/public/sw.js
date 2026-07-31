@@ -1,4 +1,4 @@
-const CACHE_NAME = "coinmonie-shell-v1";
+const CACHE_NAME = "coinmonie-shell-v2";
 const SHELL_ASSETS = [
 	"/manifest.webmanifest",
 	"/favicon.ico",
@@ -26,8 +26,7 @@ self.addEventListener("activate", (event) => {
 	);
 });
 
-// Network-first: never serve stale app code/data, but fall back to the
-// cached shell when offline so the app still opens.
+// Network-first, falls back to cached shell when offline.
 self.addEventListener("fetch", (event) => {
 	if (event.request.method !== "GET") return;
 

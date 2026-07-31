@@ -5,11 +5,7 @@ import { transactions, webhookEvents } from '#/db/schema'
 import { and, eq, notInArray } from 'drizzle-orm'
 import { env } from '#/env'
 import { checkRateLimit } from '#/lib/rate-limit'
-
-// Once a transaction reaches a terminal state, a replayed (previously valid,
-// captured-and-resent) webhook must not be able to move it backward — e.g.
-// re-applying a stale COMPLETED event over a later FAILED one, or vice versa.
-const TERMINAL_STATUSES = ['COMPLETED', 'FAILED']
+import { LOCKED_STATUSES } from '#/lib/transaction-status'
 
 function verifySignature(rawBody: string, signatureHeader: string | null) {
 	if (!signatureHeader) return false
@@ -31,9 +27,7 @@ async function handleWebhook(request: Request) {
 	const signatureHeader = request.headers.get('x-switch-signature')
 	const signatureValid = verifySignature(rawBody, signatureHeader)
 
-	// Unsigned/forged requests get a much tighter budget for how many we'll
-	// bother persisting to the audit log — enough to see an attack pattern
-	// without letting an attacker use this endpoint to flood the database.
+	// Tighter rate limit for unsigned requests to avoid audit-log flooding.
 	if (!signatureValid) {
 		if (await checkRateLimit(request, 'webhook-invalid', 5, 60_000)) {
 			return new Response('Invalid signature', { status: 401 })
@@ -43,7 +37,7 @@ async function handleWebhook(request: Request) {
 		try {
 			invalidJson = JSON.parse(rawBody)
 		} catch {
-			// still worth recording that an unparsable request hit this endpoint
+			// still log the unparsable request
 		}
 
 		await db.insert(webhookEvents).values({
@@ -63,9 +57,7 @@ async function handleWebhook(request: Request) {
 		return new Response('Invalid JSON', { status: 400 })
 	}
 
-	// Payment webhooks are a flat payload: { status, reference, deposit, meta,
-	// source, destination, type, ... } — no wrapping envelope. Wallet-only
-	// events (raw deposit notifications) are also flat but lack `reference`.
+	// Wallet events lack `reference`; payment events have it.
 	const isPaymentEvent = typeof json.reference === 'string' && typeof json.status === 'string'
 	const isWalletEvent = !isPaymentEvent && typeof json.hash === 'string' && typeof json.address === 'string'
 
@@ -91,7 +83,7 @@ async function handleWebhook(request: Request) {
 			})
 			.where(and(
 				eq(transactions.reference, json.reference),
-				notInArray(transactions.status, TERMINAL_STATUSES),
+				notInArray(transactions.status, LOCKED_STATUSES),
 			))
 	}
 
