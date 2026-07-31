@@ -2,7 +2,7 @@ import { Container, Main, Section } from '#/components/craft'
 import { Button } from '#/components/ui/button'
 import { InstallPrompt } from '#/components/install-prompt'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
-import { Clock, Headphones, Moon, Sun } from 'lucide-react'
+import { Clock, Mail, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
@@ -73,7 +73,7 @@ function RouteComponent() {
                 asChild
               >
                 <a href={SUPPORT_MAILTO_URL} target="_blank" rel="noopener noreferrer" aria-label="Contact support">
-                  <Headphones className="size-4 md:size-6 text-accent" />
+                  <Mail className="size-4 md:size-6 text-accent" />
                 </a>
               </Button>
               <Button
