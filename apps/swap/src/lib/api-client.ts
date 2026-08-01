@@ -114,7 +114,7 @@ export const getHistoryQueryOptions = (depositAddresses: string[]) => queryOptio
     const results = await Promise.all(
       depositAddresses.map((depositAddress) => history({ data: { depositAddress } }))
     )
-    return results.flat().sort((a, b) => b.date.localeCompare(a.date))
+    return results.flat().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   },
   enabled: depositAddresses.length > 0,
   initialData: [],

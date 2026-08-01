@@ -10,7 +10,6 @@ import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
-import {formatDistanceToNow} from "date-fns"
 
 // Dedupe window to avoid double-submitting the same offer to Switch.
 const DUPLICATE_SUBMISSION_WINDOW_MS = 30_000
@@ -224,7 +223,7 @@ export const history = createServerFn({method: "GET"})
 			})
 
 			return rows.map((transaction) => ({
-				date: formatDistanceToNow(transaction.createdAt),
+				date: transaction.createdAt.toISOString(),
 				reference: transaction.reference,
 				youWillSend: { amount: Number(transaction.sourceAmount), currency: transaction.sourceCurrency },
 				youWillReceive: { amount: Number(transaction.destAmount), currency: transaction.destCurrency },

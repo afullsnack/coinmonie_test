@@ -80,7 +80,17 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       <span className="px-4 font-semibold justify-center">Date</span>
     ),
     cell: ({ row }) => {
-      return <span className="lg:px-4 capitalize">{row.original.date}</span>
+      return (
+        <span className="lg:px-4 whitespace-nowrap">
+          {new Date(row.original.date).toLocaleString()}
+        </span>
+      )
+    },
+    filterFn: (row, columnId, filterValue: { from?: string; to?: string }) => {
+      const value = new Date(row.getValue<string>(columnId)).getTime()
+      if (filterValue.from && value < new Date(filterValue.from).getTime()) return false
+      if (filterValue.to && value > new Date(filterValue.to).getTime() + 86_400_000 - 1) return false
+      return true
     },
     enableHiding: false,
   },
@@ -214,6 +224,8 @@ export function DataTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   )
+  const [dateFrom, setDateFrom] = React.useState('')
+  const [dateTo, setDateTo] = React.useState('')
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
@@ -230,6 +242,14 @@ export function DataTable({
     () => data.map(({ reference }) => reference),
     [data],
   )
+
+  React.useEffect(() => {
+    setColumnFilters((prev) => {
+      const withoutDate = prev.filter((f) => f.id !== 'date')
+      if (!dateFrom && !dateTo) return withoutDate
+      return [...withoutDate, { id: 'date', value: { from: dateFrom, to: dateTo } }]
+    })
+  }, [dateFrom, dateTo])
 
   const table = useReactTable({
     data,
@@ -265,7 +285,41 @@ export function DataTable({
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        <div />
+        <div className="flex items-center gap-2">
+          <Label htmlFor="date-from" className="sr-only">
+            From date
+          </Label>
+          <input
+            id="date-from"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-8 rounded-md border border-input bg-transparent px-2 text-sm text-primary"
+          />
+          <span className="text-muted-foreground text-sm">to</span>
+          <Label htmlFor="date-to" className="sr-only">
+            To date
+          </Label>
+          <input
+            id="date-to"
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-8 rounded-md border border-input bg-transparent px-2 text-sm text-primary"
+          />
+          {(dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDateFrom('')
+                setDateTo('')
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         <TabsList className="hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1 @4xl/main:flex">
           <TabsTrigger value="outline">Outline</TabsTrigger>
           <TabsTrigger value="past-performance">
