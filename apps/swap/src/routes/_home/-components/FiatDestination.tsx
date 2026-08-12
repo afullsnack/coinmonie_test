@@ -47,11 +47,11 @@ const FiatDestination = ({
         </Button>
       </InputGroupAddon>
       <InputGroupInput
-        type="number"
+        type="text"
+        inputMode="numeric"
         value={accountNumber}
-				onChange={(e) => onAccountNumberChange(e.target.value)}
+				onChange={(e) => onAccountNumberChange(e.target.value.replace(/\D/g, '').slice(0, fiat?.mobileLength ?? 10))}
 				placeholder={fiat?.country === "NG"? 'Account number' : 'Mobile number'}
-				maxLength={fiat?.mobileLength ?? 10}
 				disabled={disabled}
         className={cn(
           defaultInputStyle,

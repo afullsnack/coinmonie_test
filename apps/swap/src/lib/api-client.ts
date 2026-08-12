@@ -1,4 +1,5 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
+import nigeriaBanks from '#/data/banks/nigeria.json'
 import {
   adminGetWebhookConfig,
   adminGetWebhookEventsForReference,
@@ -81,8 +82,7 @@ export const bankListQueryOptions = (country: string) => queryOptions({
   queryFn: async () => {
 		try {
 			if (country === "NG") {
-	      const list = (await import('@/data/banks/nigeria.json')).default
-	      return list.banks
+	      return nigeriaBanks.banks
 			} else {
 				const result = await getInstitution({ data: { country } })
 				return result

@@ -55,13 +55,23 @@ export function TokenSelectorModal({
   const [searchToken, setSearchToken] = useState('')
   const assetList = useQuery(assetListQueryOptions)
 
-  const networks: Array<Network> = Object.values(
-    assetList.data.reduce((acc, { blockchain }) => {
-      const index = blockchain.id.toString()
-      acc[index] = blockchain
-      return acc
-    }, {} as any),
-  )
+  const networkPriority = ['base', 'bsc']
+  const networks: Array<Network> = (
+    Object.values(
+      assetList.data.reduce((acc, { blockchain }) => {
+        const index = blockchain.id.toString()
+        acc[index] = blockchain
+        return acc
+      }, {} as any),
+    ) as Array<Network>
+  ).sort((a, b) => {
+    const aIndex = networkPriority.indexOf(a.name.toLowerCase())
+    const bIndex = networkPriority.indexOf(b.name.toLowerCase())
+    if (aIndex === -1 && bIndex === -1) return 0
+    if (aIndex === -1) return 1
+    if (bIndex === -1) return -1
+    return aIndex - bIndex
+  })
 
   const filteredNetworks = networks.filter((network) => {
     const matchesSearch = network.name
@@ -126,7 +136,7 @@ export function TokenSelectorModal({
                     )
                   }}
                 >
-                  <SelectTrigger className="w-full h-auto max-h-12 border border-accent">
+                  <SelectTrigger className="w-full h-auto max-h-12 border border-accent animate-pulse shadow-[0_0_0_3px_var(--color-accent)] shadow-accent/40">
                     <SelectValue
                       placeholder="Select network"
                       className="max-w-lg w-full"

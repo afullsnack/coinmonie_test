@@ -148,7 +148,7 @@ function Home() {
 	const amountError = exceedsTransactionCap
 		? `Max. amount is $${transactionCap!.toLocaleString('en-US')}`
 		: payoutLimit && typeof amountUsd === 'number'
-			? amountUsd < payoutLimit.min
+			? amountUsd < payoutLimit.min * 1.005
 				? `Min. amount is $${payoutLimit.min.toLocaleString('en-US')}`
 				: amountUsd > payoutLimit.max
 					? `Max. amount is $${payoutLimit.max.toLocaleString('en-US')}`
@@ -428,12 +428,12 @@ function Home() {
               <Copy className="size-4 text-muted-foreground shrink-0" />
             </button>
 
-            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted-foreground">
               {reference && (
-                <span>Reference: <span className="font-mono">{reference}</span></span>
+                <span className="min-w-0 truncate">Reference: <span className="font-mono">{reference}</span></span>
               )}
               {quote.data?.settlement && (
-                <span>Settles in {quote.data.settlement} after deposit</span>
+                <span className="shrink-0">Settles in {quote.data.settlement} after deposit</span>
               )}
             </div>
 

@@ -34,7 +34,7 @@ const ReceiveComponent = ({
           />
         )}
         <span className="text-secondary-foreground/60 text-xs h-4 block">
-          {fiat?.currency}{receiveAmount || '0.00'}
+          {receiveAmount ? 'Fee: 0' : ''}
         </span>
       </div>
       <div className="flex-1 flex flex-col items-end gap-3">
