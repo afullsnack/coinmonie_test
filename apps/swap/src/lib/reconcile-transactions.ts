@@ -1,7 +1,5 @@
 import { betterFetch } from '@better-fetch/fetch'
-import { and, eq, notInArray } from 'drizzle-orm'
 import { db } from '#/db'
-import { transactions } from '#/db/schema'
 import { env } from '#/env'
 import { LOCKED_STATUSES } from '#/lib/transaction-status'
 
@@ -24,10 +22,20 @@ type SwitchPaymentStatus = {
 	}
 }
 
+type SwitchWebhookResend = {
+	success: boolean
+	data: { successful: boolean } | null
+}
+
 function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+// Checks Switch's live status for stuck transactions and, when it has drifted
+// from ours (the tell-tale sign of a missed webhook), asks Switch to resend
+// the webhook rather than writing the status ourselves. That way the update
+// still flows through /api/webhooks/switch — signature-verified and logged
+// to webhook_events — instead of a second, untracked write path.
 export async function reconcileStuckTransactions() {
 	const now = Date.now()
 	const stuck = await db.query.transactions.findMany({
@@ -41,7 +49,7 @@ export async function reconcileStuckTransactions() {
 	})
 
 	let checked = 0
-	let updated = 0
+	let resent = 0
 
 	for (const transaction of stuck) {
 		if (checked > 0) await sleep(CALL_DELAY_MS)
@@ -53,29 +61,21 @@ export async function reconcileStuckTransactions() {
 		)
 
 		if (error || !result?.success) continue
+		if (result.data.status === transaction.status) continue
 
-		const liveStatus = result.data.status
-		if (liveStatus === transaction.status) continue
+		// Status has drifted from Switch's — our webhook was missed. Ask Switch
+		// to redeliver it instead of patching the row ourselves.
+		const { data: resendResult, error: resendError } = await betterFetch<SwitchWebhookResend>(
+			`${SWITCH_API_URL}/webhook/resend`,
+			{
+				method: 'POST',
+				headers: { 'x-service-key': env.SWITCH_API_KEY },
+				body: { reference: transaction.reference },
+			},
+		)
 
-		const paymentHash = result.data.meta?.hash ?? null
-		const explorerUrl = result.data.meta?.explorer_url ?? null
-
-		const updateResult = await db.update(transactions)
-			.set({
-				status: liveStatus,
-				...(paymentHash ? { transactionHash: paymentHash } : {}),
-				...(explorerUrl ? { explorerUrl } : {}),
-			})
-			.where(
-				and(
-					eq(transactions.reference, transaction.reference),
-					notInArray(transactions.status, LOCKED_STATUSES),
-				),
-			)
-			.returning({ reference: transactions.reference })
-
-		if (updateResult.length > 0) updated++
+		if (!resendError && resendResult?.success && resendResult.data?.successful) resent++
 	}
 
-	return { checked, updated }
+	return { checked, resent }
 }
