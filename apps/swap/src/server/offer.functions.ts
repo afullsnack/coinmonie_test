@@ -8,6 +8,7 @@ import { getDeveloperFee } from '#/lib/developer-fee'
 import { getTransactionLimit } from '#/lib/transaction-limit'
 import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
+import { eq } from 'drizzle-orm'
 import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 
@@ -279,6 +280,19 @@ export const adminGetWebhookEventsForReference = createServerFn({ method: 'GET' 
 		}))
 	})
 
+// Support records this manually after a failed transaction — where the
+// customer confirmed they want their stablecoin sent back, if they don't
+// want Switch to simply retry the original payout.
+export const adminSetRefundAddress = createServerFn({ method: 'POST' })
+	.validator(z.object({ reference: z.string(), refundAddress: z.string().min(1) }))
+	.handler(async ({ data }) => {
+		await requireAdminSession()
+		await db.update(transactions)
+			.set({ refundAddress: data.refundAddress })
+			.where(eq(transactions.reference, data.reference))
+		return { success: true }
+	})
+
 export const adminGetWebhookConfig = createServerFn({ method: 'GET' }).handler(async () => {
 	await requireAdminSession()
 	return {
@@ -351,7 +365,7 @@ export const getQuote = createServerFn()
   .validator(
     z.object({
       asset: z.string(),
-			amount: z.number(),
+			amount: z.number().positive().finite(),
 			country: z.string().default('NG'),
       currency: z.string().default('NGN'),
     }),
@@ -421,7 +435,7 @@ export const initiateOffer = createServerFn()
   .validator(
     z.object({
       asset: z.string(),
-			amount: z.number(),
+			amount: z.number().positive().finite(),
 			accountName: z.string().optional(),
 			accountNumber: z.string().optional(),
 			mobileNumber: z.string().optional(),
@@ -519,7 +533,7 @@ export const initiateOffer = createServerFn()
 						mobile_number: data.mobileNumber,
 						mobile_network: data.mobileNetwork,
 					},
-					sender_name: 'Coinmonie',
+					sender_name: 'CM Technologies',
           reason: "REMITTANCE",
           ...(developerFee.enabled
             ? { developer_fee: developerFee.percent }

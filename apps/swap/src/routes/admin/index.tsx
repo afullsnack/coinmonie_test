@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   adminListQueryOptions,
+  adminSetRefundAddressMutationOptions,
   adminStatsQueryOptions,
   adminTransactionsQueryOptions,
   adminWaitlistQueryOptions,
@@ -117,6 +118,44 @@ function WebhookEventsList({ reference }: { reference: string }) {
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+// Only relevant once a transaction has failed — recorded by support after
+// confirming with the customer where they want their stablecoin sent back,
+// for cases where they don't want Switch to simply retry the original payout.
+function RefundAddressField({ reference, initialValue }: { reference: string; initialValue: string | null }) {
+  const [value, setValue] = useState(initialValue ?? '')
+  const queryClient = useQueryClient()
+  const save = useMutation({
+    ...adminSetRefundAddressMutationOptions,
+    onSuccess: () => {
+      toast.success('Refund address saved')
+      queryClient.invalidateQueries({ queryKey: ['admin', 'transactions'] })
+    },
+  })
+
+  return (
+    <div>
+      <p className="text-xs uppercase text-muted-foreground font-medium mb-1">Refund address</p>
+      <div className="flex items-center gap-2">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Customer's wallet address"
+          className="font-mono text-xs rounded-lg"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          className="rounded-lg shrink-0"
+          disabled={!value.trim() || value.trim() === initialValue || save.isPending}
+          onClick={() => save.mutate({ reference, refundAddress: value.trim() })}
+        >
+          Save
+        </Button>
+      </div>
     </div>
   )
 }
@@ -555,6 +594,12 @@ function AdminDashboard() {
                         <p className="text-muted-foreground">N/A</p>
                       )}
                     </div>
+                    {transaction.status === 'FAILED' && (
+                      <RefundAddressField
+                        reference={transaction.reference}
+                        initialValue={transaction.refundAddress}
+                      />
+                    )}
                     <div>
                       <p className="text-xs uppercase text-muted-foreground font-medium mb-2">Webhook audit trail</p>
                       <WebhookEventsList reference={transaction.reference} />

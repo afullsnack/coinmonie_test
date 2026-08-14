@@ -6,6 +6,7 @@ import { ChevronDownIcon, Loader2 } from 'lucide-react'
 
 const ReceiveComponent = ({
   receiveAmount,
+  handleReceiveAmountChange,
   setIsFiatModalOpen,
 	fiat,
   isRateLoading,
@@ -13,7 +14,7 @@ const ReceiveComponent = ({
   return (
     <div className="bg-secondary-foreground/10 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
-        <span className="text-secondary-foreground text-sm">
+        <span className="text-secondary-foreground text-sm font-bold">
           You'll receive
         </span>
         {isRateLoading ? (
@@ -24,9 +25,10 @@ const ReceiveComponent = ({
         ) : (
           <Input
             type="text"
+            inputMode="decimal"
             placeholder="0.00"
             value={receiveAmount}
-            disabled
+            onChange={(e) => handleReceiveAmountChange(e.target.value)}
             className={cn(
               defaultInputStyle,
               'md:text-4xl text-3xl border-none max-w-xs md:h-20 h-12 bg-transparent text-primary font-semibold placeholder-gray-600 focus-visible:border-none focus:outline-none text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none',

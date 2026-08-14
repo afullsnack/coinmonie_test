@@ -4,6 +4,7 @@ import {
   adminGetWebhookConfig,
   adminGetWebhookEventsForReference,
   adminListTransactions,
+  adminSetRefundAddress,
   adminStats,
   assetList,
   bankLookup,
@@ -124,9 +125,11 @@ export const transactionStatusQueryOptions = (reference: string | null) => query
   queryKey: ['transactionStatus', reference],
   queryFn: async () => await getTransactionStatus({ data: { reference: reference! } }),
   enabled: Boolean(reference),
+  // Tight interval: this screen is often watched live at an in-person checkout,
+  // where every extra second of silence reads as "did it work?" to both sides.
   refetchInterval: (query) => {
     const status = query.state.data?.status
-    return status === 'COMPLETED' || status === 'FAILED' ? false : 5_000
+    return status === 'COMPLETED' || status === 'FAILED' ? false : 2_000
   },
 })
 
@@ -204,6 +207,15 @@ export const adminWebhookEventsQueryOptions = (reference: string) => queryOption
   queryKey: ['admin', 'webhookEvents', reference],
   queryFn: async () => await adminGetWebhookEventsForReference({ data: { reference } }),
   enabled: Boolean(reference),
+})
+
+export const adminSetRefundAddressMutationOptions = mutationOptions({
+  mutationKey: ['admin', 'setRefundAddress'],
+  mutationFn: async (values: { reference: string; refundAddress: string }) =>
+    await adminSetRefundAddress({ data: values }),
+  onError(error) {
+    showErrorDialog(errorMessage(error, 'Failed to save refund address.'))
+  },
 })
 
 export const adminWaitlistQueryOptions = queryOptions({

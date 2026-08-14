@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { createFileRoute, useRouteContext } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { CheckCircle2, Copy, ExternalLink, Loader2, QrCode } from 'lucide-react'
+import { CheckCircle2, Circle, Copy, ExternalLink, Loader2, QrCode, XCircle } from 'lucide-react'
 import { TokenSelectorModal } from '@/components/token-selector-modal'
 import { BankSelectorModal } from '@/components/bank-selector-modal'
 import { Button } from '#/components/ui/button'
 import { MiddleToggle } from '#/components/MiddleToggle'
+import { cn } from '#/lib/utils'
 
 import type {Asset, Bank, Fiat, Network} from "#/data/constants"
 import { assetListQueryOptions, bankLookUpMutationOptions, coverageQueryOptions, enabledCurrenciesQueryOptions, errorMessage, initiateOfframpMutationOptions, offrampQuoteMutationOptions, offrampRateMutationOptions, transactionLimitConfigQueryOptions, transactionStatusQueryOptions } from '#/lib/api-client'
@@ -23,12 +24,25 @@ import { dismissErrorDialog, showErrorDialog } from '#/lib/error-dialog-store'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
-function statusColorClass(status: string | undefined): string {
-	if (status === 'FAILED') return 'text-destructive'
-	if (status === 'COMPLETED') return 'text-green-600 dark:text-green-400'
-	if (status === 'AWAITING_DEPOSIT' || status === 'PENDING' || status === 'PROCESSING')
-		return 'text-amber-600 dark:text-amber-400'
-	return 'text-muted-foreground'
+// Min/max amount rejections are routine while the user is still mid-typing
+// (each keystroke re-fires the debounced quote for whatever partial number
+// exists at that moment) — the inline red text already surfaces these
+// clearly, so the interrupting modal is reserved for real failures.
+function isAmountLimitMessage(message: string): boolean {
+	return /^(Minimum|Maximum) amount/i.test(message)
+}
+
+// Checkout is often watched live by two people (buyer + shop) — a single
+// generic "pending" label leaves both guessing whether anything moved. This
+// makes the real Switch progression (deposit seen → paying out → done)
+// visible as distinct steps instead of one static line.
+type CheckoutStep = 'awaiting' | 'processing' | 'completed' | 'failed'
+
+function checkoutStepFromStatus(status: string | undefined): CheckoutStep {
+	if (status === 'COMPLETED') return 'completed'
+	if (status === 'FAILED') return 'failed'
+	if (status === 'PROCESSING') return 'processing'
+	return 'awaiting'
 }
 
 function Home() {
@@ -44,8 +58,15 @@ function Home() {
   const [fiat, setFiat] = useState<Fiat | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
-  const [sendAmount, setSendAmount] = useState('')
-  const [receiveAmount, setReceiveAmount] = useState('')
+	// Only the field the user is actually typing into is stored — the other
+	// side is always computed below, so the two can never drift apart.
+	const [rawInput, setRawInput] = useState<{ field: 'send' | 'receive'; value: string }>({
+		field: 'send',
+		value: '',
+	})
+	// Set once initiate() locks a real rate for a reference — from then on the
+	// receive amount is a settled fact, not a live-derived estimate.
+	const [lockedReceiveAmount, setLockedReceiveAmount] = useState<string | null>(null)
   const [accountNumber, setAccountNumber] = useState('')
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isFiatModalOpen, setIsFiatModalOpen] = useState(false)
@@ -57,15 +78,27 @@ function Home() {
 	const rate = useMutation({
 		...offrampRateMutationOptions,
 		onError(error) {
-			setProviderAmountError(errorMessage(error, 'Please try again in a moment.'))
-			showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
+			const message = errorMessage(error, 'Please try again in a moment.')
+			setProviderAmountError(message)
+			if (!isAmountLimitMessage(message)) showErrorDialog(message)
+		},
+		onSuccess() {
+			setProviderAmountError(null)
+			dismissErrorDialog()
 		},
 	})
 	const quote = useMutation({
 		...offrampQuoteMutationOptions,
 		onError(error) {
-			setProviderAmountError(errorMessage(error, 'Please try again in a moment.'))
-			showErrorDialog(errorMessage(error, 'Please try again in a moment.'))
+			const message = errorMessage(error, 'Please try again in a moment.')
+			setProviderAmountError(message)
+			if (!isAmountLimitMessage(message)) showErrorDialog(message)
+		},
+		// Once a later amount succeeds, any stale dialog from an earlier
+		// keystroke (non-limit errors only — see isAmountLimitMessage) must clear.
+		onSuccess() {
+			setProviderAmountError(null)
+			dismissErrorDialog()
 		},
 	})
 	const initiate = useMutation({
@@ -74,6 +107,14 @@ function Home() {
 			setAddress(data.deposit.address)
 			setReference(data.reference)
 			addMyDepositAddress(data.deposit.address)
+			// initiate locks the actual rate for this reference — from here on
+			// "You'll receive" reflects that fact instead of a live estimate.
+			// (Duplicate-submission responses omit destination; keep estimating then.)
+			if ('destination' in data) {
+				setLockedReceiveAmount(
+					data.destination.amount.toLocaleString('en-US', { maximumFractionDigits: 2 }),
+				)
+			}
 		},
 	})
 	const bankLookup = useMutation(bankLookUpMutationOptions)
@@ -128,10 +169,49 @@ function Home() {
 		queryClient.invalidateQueries({queryKey: ['bankList']})
 	}, [sendToken, fiat])
 
+	const [cardOrder, setCardOrder] = useState<'send-first' | 'receive-first'>('send-first')
+
+	// Purely a visual reorder — must never touch rawInput, or it would silently
+	// overwrite whatever the user last typed.
+	const handleToggleCardOrder = () => {
+		setCardOrder((order) => (order === 'send-first' ? 'receive-first' : 'send-first'))
+	}
+
   const handleSendAmountChange = (value: string) => {
-    setSendAmount(value)
+		setLockedReceiveAmount(null)
+		setRawInput({ field: 'send', value })
     setProviderAmountError(null)
   }
+
+	const handleReceiveAmountChange = (value: string) => {
+		setLockedReceiveAmount(null)
+		setRawInput({ field: 'receive', value })
+		setProviderAmountError(null)
+	}
+
+	// The field the user isn't typing into is always computed from this one —
+	// two state variables kept "in sync" is how the send/receive drift bug
+	// happened before; a single raw value can't drift from its own derivation.
+	const sendAmount =
+		rawInput.field === 'send'
+			? rawInput.value
+			: (() => {
+					if (!rate.data?.rate) return ''
+					const parsed = Number.parseFloat(rawInput.value.replaceAll(',', ''))
+					if (Number.isNaN(parsed)) return ''
+					return (parsed / rate.data.rate).toFixed(6).replace(/\.?0+$/, '')
+				})()
+
+	const receiveAmount =
+		lockedReceiveAmount ??
+		(rawInput.field === 'receive'
+			? rawInput.value
+			: (() => {
+					if (!rate.data?.rate) return ''
+					const parsed = Number.parseFloat(rawInput.value)
+					if (Number.isNaN(parsed)) return ''
+					return (parsed * rate.data.rate).toLocaleString('en-US', { maximumFractionDigits: 2 })
+				})())
 
 	useEffect(() => {
 		setProviderAmountError(null)
@@ -172,22 +252,13 @@ function Home() {
 		}
 	}, [exceedsTransactionCap, transactionCap])
 
+	// Must NOT gate on amountError: amountError is partly derived from
+	// quote.data (via amountUsd below), so a stale/wrong error would freeze
+	// this effect forever, which in turn freezes quote.data, which in turn
+	// keeps recomputing the same wrong amountError — the fetch always has to
+	// go out for whatever amount is currently on screen.
 	useEffect(() => {
-		if (sendAmount && !Number.isNaN(Number.parseFloat(sendAmount)) && rate.data?.rate && !amountError) {
-			const amount = Number.parseFloat(sendAmount)
-			const received = amount * rate.data.rate
-			setReceiveAmount(
-				received.toLocaleString('en-US', {
-					maximumFractionDigits: 2,
-				}),
-			)
-		} else {
-			setReceiveAmount('')
-		}
-	}, [sendAmount, rate.data?.rate, amountError])
-
-	useEffect(() => {
-		if (!sendAmount || !sendToken || !fiat || Number.isNaN(Number.parseFloat(sendAmount)) || amountError) return
+		if (!sendAmount || !sendToken || !fiat || Number.isNaN(Number.parseFloat(sendAmount))) return
 		const timeout = setTimeout(() => {
 			quote.mutate({
 				asset: sendToken.id,
@@ -197,16 +268,17 @@ function Home() {
 			})
 		}, 600)
 		return () => clearTimeout(timeout)
-	}, [sendAmount, sendToken, fiat, amountError])
+	}, [sendAmount, sendToken, fiat])
 
   const handleSwap = async () => {
 		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data || !fiat || !rate.data?.rate || amountError) return
 		const amount = Number.parseFloat(sendAmount)
+		if (!Number.isFinite(amount) || amount <= 0) return
 
 		if (fiat.country === "NG") {
 			initiate.mutate({
 				asset: sendToken?.id || '',
-				amount: Math.round(amount),
+				amount,
 				bankCode: bankLookup.data.bank_code,
 				accountName: bankLookup.data.account_name,
 				accountNumber: bankLookup.data.account_number,
@@ -216,7 +288,7 @@ function Home() {
 		} else {
 			initiate.mutate({
 				asset: sendToken?.id || '',
-				amount: Math.round(amount),
+				amount,
 				accountName: bankLookup.data.account_name,
 				mobileNetwork: bankLookup.data.mobile_network,
 				mobileNumber: bankLookup.data.phone_number,
@@ -250,27 +322,42 @@ function Home() {
 
         <div className="grid gap-2 rounded-xl p-2 border border-border overflow-hidden bg-card mb-3">
           <div className="relative grid gap-1">
-            <SendComponent
-              handleSendAmountChange={handleSendAmountChange}
-              sendAmount={sendAmount}
-              setIsTokenModalOpen={setIsTokenModalOpen}
-							sendToken={sendToken}
-              usdValue={quote.data?.source.amount_usd}
-              isUsdLoading={quote.isPending}
-              fiat={fiat}
-              rate={rate.data?.rate}
-              amountError={amountError}
-            />
-            <MiddleToggle />
-            <ReceiveComponent
-              handleSendAmountChange={handleSendAmountChange}
-              sendAmount={sendAmount}
-              receiveAmount={receiveAmount}
-              setIsFiatModalOpen={setIsFiatModalOpen}
-              fiat={fiat}
-              rate={rate.data?.rate}
-              isRateLoading={rate.isPending}
-            />
+            {(() => {
+              const send = (
+                <SendComponent
+                  key="send"
+                  handleSendAmountChange={handleSendAmountChange}
+                  sendAmount={sendAmount}
+                  receiveAmount={receiveAmount}
+                  setIsTokenModalOpen={setIsTokenModalOpen}
+                  sendToken={sendToken}
+                  usdValue={quote.data?.source.amount_usd}
+                  isUsdLoading={quote.isPending}
+                  fiat={fiat}
+                  rate={rate.data?.rate}
+                  amountError={amountError}
+                />
+              )
+              const receive = (
+                <ReceiveComponent
+                  key="receive"
+                  handleReceiveAmountChange={handleReceiveAmountChange}
+                  receiveAmount={receiveAmount}
+                  setIsFiatModalOpen={setIsFiatModalOpen}
+                  fiat={fiat}
+                  rate={rate.data?.rate}
+                  isRateLoading={rate.isPending}
+                />
+              )
+              const [top, bottom] = cardOrder === 'send-first' ? [send, receive] : [receive, send]
+              return (
+                <>
+                  {top}
+                  <MiddleToggle onClick={handleToggleCardOrder} />
+                  {bottom}
+                </>
+              )
+            })()}
           </div>
 
           <FiatDestination
@@ -437,14 +524,64 @@ function Home() {
               )}
             </div>
 
-            <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${statusColorClass(transactionStatus.data?.status)}`}>
-              <Loader2 className="size-3 animate-spin" />
-              <span>
-                {transactionStatus.data?.status
-                  ? `Status: ${transactionStatus.data.status.replaceAll('_', ' ')}`
-                  : 'Waiting for deposit...'}
-              </span>
-            </div>
+            {(() => {
+              const step = checkoutStepFromStatus(transactionStatus.data?.status)
+              const steps: { key: CheckoutStep; label: string }[] = [
+                { key: 'awaiting', label: 'Deposit received' },
+                { key: 'processing', label: 'Paying out' },
+                { key: 'completed', label: 'Delivered' },
+              ]
+              const stepIndex = steps.findIndex((s) => s.key === step)
+
+              if (step === 'failed') {
+                return (
+                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
+                    <XCircle className="size-4 shrink-0" />
+                    Transfer failed — contact support with your reference
+                  </div>
+                )
+              }
+
+              return (
+                <div className="mt-4 rounded-xl bg-primary-foreground/5 px-4 py-3">
+                  <div className="flex items-center">
+                    {steps.map((s, i) => {
+                      const done = i < stepIndex || step === 'completed' && i <= stepIndex
+                      const active = i === stepIndex && step !== 'completed' || (i === stepIndex && step === 'completed')
+                      return (
+                        <div key={s.key} className="flex flex-1 items-center last:flex-none">
+                          <div className="flex flex-col items-center gap-1.5">
+                            {done ? (
+                              <CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
+                            ) : active ? (
+                              <Loader2 className="size-5 animate-spin text-amber-600 dark:text-amber-400" />
+                            ) : (
+                              <Circle className="size-5 text-muted-foreground/40" />
+                            )}
+                            <span
+                              className={cn(
+                                'text-[10px] font-medium text-center whitespace-nowrap',
+                                done || active ? 'text-primary' : 'text-muted-foreground/60',
+                              )}
+                            >
+                              {s.label}
+                            </span>
+                          </div>
+                          {i < steps.length - 1 && (
+                            <div
+                              className={cn(
+                                'h-0.5 flex-1 mx-1 -translate-y-2.5',
+                                i < stepIndex ? 'bg-green-600 dark:bg-green-400' : 'bg-muted-foreground/20',
+                              )}
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 				)}
 

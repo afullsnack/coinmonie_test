@@ -8,6 +8,7 @@ import { ChevronDownIcon } from "lucide-react"
 const SendComponent = ({
   handleSendAmountChange,
   sendAmount,
+  receiveAmount,
   setIsTokenModalOpen,
 	sendToken,
   isUsdLoading,
@@ -15,12 +16,12 @@ const SendComponent = ({
   rate,
   amountError,
 }: any) => {
-  const needsToken = Boolean(sendAmount) && !sendToken
+  const needsToken = (Boolean(sendAmount) || Boolean(receiveAmount)) && !sendToken
 
   return (
     <div className="bg-secondary-foreground/5 rounded-xl p-4 flex gap-3 items-center justify-between">
       <div className="grid items-center justify-start gap-3">
-        <span className="text-secondary-foreground text-sm">You'll send</span>
+        <span className="text-secondary-foreground text-sm font-bold">You'll send</span>
         <Input
           type="number"
           placeholder="0.00"

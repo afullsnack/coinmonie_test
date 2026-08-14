@@ -119,6 +119,7 @@ export const transactions = pgTable(
 		mobileNetwork: text("mobile_network"),
 		transactionHash: text("transaction_hash"),
 		explorerUrl: text("explorer_url"),
+		refundAddress: text("refund_address"),
 		status: text("status").notNull().default("PENDING"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
