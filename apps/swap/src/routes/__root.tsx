@@ -87,7 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
+			<body className="overflow-x-hidden">
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="dark"
