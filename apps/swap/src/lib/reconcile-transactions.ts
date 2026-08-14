@@ -8,7 +8,9 @@ import { LOCKED_STATUSES } from '#/lib/transaction-status'
 const SWITCH_API_URL = env.SWITCH_API_URL
 
 // Skip anything younger than this — still probably mid-flow.
-const MIN_AGE_MS = 10 * 60 * 1000
+// Kept short since the cron itself now runs every 2 min (see vite.config.ts);
+// a wider floor would just re-introduce the delay this task exists to avoid.
+const MIN_AGE_MS = 2 * 60 * 1000
 // Skip anything older than this — needs a human, not a retry loop.
 const MAX_AGE_MS = 24 * 60 * 60 * 1000
 // Spacing between Switch calls so a large backlog doesn't trip their rate limit.

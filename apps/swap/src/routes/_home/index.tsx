@@ -327,8 +327,8 @@ function Home() {
 
             <div className="mt-4 grid gap-2 text-sm">
               <div className="flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
-                <span className="text-xs text-muted-foreground">Reference</span>
-                <span className="font-mono text-xs truncate">{reference}</span>
+                <span className="text-xs text-muted-foreground shrink-0">Reference</span>
+                <span className="font-mono text-xs truncate min-w-0">{reference}</span>
               </div>
               {transactionStatus.data?.transactionHash && (
                 <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
@@ -339,7 +339,7 @@ function Home() {
                       navigator.clipboard.writeText(transactionStatus.data!.transactionHash!)
                       toast.success('Transaction hash copied')
                     }}
-                    className="font-mono text-xs truncate flex-1 text-left hover:text-accent transition-colors"
+                    className="font-mono text-xs truncate flex-1 min-w-0 text-left hover:text-accent transition-colors"
                   >
                     {transactionStatus.data.transactionHash}
                   </button>
