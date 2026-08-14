@@ -63,6 +63,11 @@ async function handleWebhook(request: Request) {
 
 	const paymentHash: string | null = isPaymentEvent ? json.meta?.hash ?? null : null
 	const explorerUrl: string | null = isPaymentEvent ? json.meta?.explorer_url ?? null : null
+	// Switch settles whatever amount actually landed on-chain, which can differ
+	// from the amount quoted at initiate time (e.g. the sender deposits more or
+	// less than requested). Sync it back so our record matches what was paid.
+	const sourceAmount: string | null = isPaymentEvent && typeof json.source?.amount === 'number' ? String(json.source.amount) : null
+	const destAmount: string | null = isPaymentEvent && typeof json.destination?.amount === 'number' ? String(json.destination.amount) : null
 
 	await db.insert(webhookEvents).values({
 		source: 'switch',
@@ -80,6 +85,8 @@ async function handleWebhook(request: Request) {
 				status: json.status,
 				...(paymentHash ? { transactionHash: paymentHash } : {}),
 				...(explorerUrl ? { explorerUrl } : {}),
+				...(sourceAmount ? { sourceAmount } : {}),
+				...(destAmount ? { destAmount } : {}),
 			})
 			.where(and(
 				eq(transactions.reference, json.reference),
