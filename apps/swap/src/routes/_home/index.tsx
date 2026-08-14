@@ -316,7 +316,7 @@ function Home() {
             ))}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            With your stablecoin, you can payout any local currency in seconds. No sign up, non-custodial.
+            With your stablecoin, you can payout any local currency in seconds. Zero Fees, non-custodial.
           </p>
         </div>
 
@@ -413,12 +413,12 @@ function Home() {
             </div>
 
             <div className="mt-4 grid gap-2 text-sm">
-              <div className="flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
+              <div className="min-w-0 flex items-center justify-between gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
                 <span className="text-xs text-muted-foreground shrink-0">Reference</span>
                 <span className="font-mono text-xs truncate min-w-0">{reference}</span>
               </div>
               {transactionStatus.data?.transactionHash && (
-                <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
+                <div className="min-w-0 flex items-center gap-2 rounded-xl bg-primary-foreground/5 px-4 py-3">
                   <span className="text-xs text-muted-foreground shrink-0">Tx hash</span>
                   <button
                     type="button"
