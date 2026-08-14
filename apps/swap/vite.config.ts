@@ -21,8 +21,6 @@ const config = defineConfig({
 				},
 			},
 			// Auto-generates a Cloudflare Cron Trigger at build time.
-			// Runs every 2 min so a missed Switch webhook is caught quickly instead of
-			// leaving the UI stuck on AWAITING_DEPOSIT for up to ~25 min.
 			scheduledTasks: {
 				'*/2 * * * *': 'transactions:reconcile',
 			},

@@ -63,9 +63,7 @@ async function handleWebhook(request: Request) {
 
 	const paymentHash: string | null = isPaymentEvent ? json.meta?.hash ?? null : null
 	const explorerUrl: string | null = isPaymentEvent ? json.meta?.explorer_url ?? null : null
-	// Switch settles whatever amount actually landed on-chain, which can differ
-	// from the amount quoted at initiate time (e.g. the sender deposits more or
-	// less than requested). Sync it back so our record matches what was paid.
+	// Settled amount can differ from the quote (sender deposits a different amount).
 	const sourceAmount: string | null = isPaymentEvent && typeof json.source?.amount === 'number' ? String(json.source.amount) : null
 	const destAmount: string | null = isPaymentEvent && typeof json.destination?.amount === 'number' ? String(json.destination.amount) : null
 
