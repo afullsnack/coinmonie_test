@@ -48,7 +48,7 @@ function Logo() {
 
   return (
     <img
-      src='/coinmonie_full_logo_rgb_white_transparent.png'
+      src="/coinmonie_full_logo_rgb_white_transparent.png"
       className={`object-contain h-12 ${isDark ? '' : 'brightness-0'}`}
     />
   )
@@ -58,12 +58,12 @@ function RouteComponent() {
   return (
     <Main className="min-h-screen flex flex-col bg-secondary selection:bg-accent selection:text-secondary">
       <InstallPrompt />
-      <Section className='p-0!'>
-        <Container className='max-w-lg p-0!'>
-     			<header className="flex items-center justify-between px-4">
-    				<Link className="flex items-center gap-2" to='/'>
-     					<Logo />
-    				</Link>
+      <Section className="p-0!">
+        <Container className="max-w-lg p-0!">
+          <header className="flex items-center justify-between px-4">
+            <Link className="flex items-center gap-2" to="/">
+              <Logo />
+            </Link>
             <div className="flex items-center">
               <ThemeToggle />
               <Button
@@ -72,7 +72,12 @@ function RouteComponent() {
                 className="hover:bg-secondary size-9 md:size-11"
                 asChild
               >
-                <a href={SUPPORT_MAILTO_URL} target="_blank" rel="noopener noreferrer" aria-label="Contact support">
+                <a
+                  href={SUPPORT_MAILTO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Contact support"
+                >
                   <Mail className="size-4 md:size-6 text-accent" />
                 </a>
               </Button>
@@ -82,19 +87,34 @@ function RouteComponent() {
                 className="hover:bg-secondary size-9 md:size-11"
                 asChild
               >
-                <Link to='/transactions'>
+                <Link to="/transactions">
                   <History className="size-4 md:size-6 text-accent" />
                 </Link>
               </Button>
             </div>
           </header>
-      </Container>
-    </Section>
-    <Section className='p-0!'>
-      <Container className='p-0! flex items-center justify-center max-w-lg'>
-        <Outlet />
-      </Container>
-    </Section>
-  </Main>
+        </Container>
+      </Section>
+      <Section className="p-0!">
+        <Container className="p-0! flex items-center justify-center max-w-lg">
+          <Outlet />
+        </Container>
+      </Section>
+			<Section className=''>
+				<Container className='p-0! sm:max-w-xl w-full'>
+					<footer className='flex sm:flex-row flex-col items-center sm:justify-between w-full sm:space-x-8'>
+						<div className=''>
+							<span className='text-sm text-center'>©2026 Moniemax V. All rights reserved.</span>
+						</div>
+
+						<div className='sm:flex-1 space-x-3 sm:space-x-0 flex items-center justify-between'>
+							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Terms of Service</a>
+							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Privacy policy</a>
+							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>User terms</a>
+						</div>
+	        </footer>
+				</Container>
+      </Section>
+    </Main>
   )
 }
