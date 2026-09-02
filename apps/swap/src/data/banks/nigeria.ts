@@ -1,4 +1,4 @@
-{
+export default {
   "metadata": {
     "country": "Nigeria",
     "lastUpdated": "2026-06-19",
