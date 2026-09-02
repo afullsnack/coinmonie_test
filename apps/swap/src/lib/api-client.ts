@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query'
-import nigeriaBanks from '#/data/banks/nigeria.json'
+import nigeriaBanks from '#/data/banks/nigeria'
 import {
   adminGetWebhookConfig,
   adminGetWebhookEventsForReference,
