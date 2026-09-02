@@ -104,13 +104,14 @@ function RouteComponent() {
 				<Container className='p-0! sm:max-w-xl w-full'>
 					<footer className='flex sm:flex-row flex-col items-center sm:justify-between w-full sm:space-x-8'>
 						<div className=''>
-							<span className='text-sm text-center'>©2026 Moniemax V. All rights reserved.</span>
+							<span className='text-sm text-center'>©2026 Coinmonie. All rights reserved.</span>
 						</div>
 
 						<div className='sm:flex-1 space-x-3 sm:space-x-0 flex items-center justify-between'>
-							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Terms of Service</a>
-							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Privacy policy</a>
-							<a href="#" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>User terms</a>
+							<a href="/coinmonie-terms-of-service.pdf" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Terms of Service</a>
+							<a href="/coinmonie-privacy-policy.pdf" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Privacy policy</a>
+							<a href="/coinmonie-data-policy.pdf" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>Data policy</a>
+							<a href="/coinmonie-aml-policy.pdf" className='text-blue-600! dark:text-blue-400! text-xs no-underline!'>AML policy</a>
 						</div>
 	        </footer>
 				</Container>
