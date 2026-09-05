@@ -3,6 +3,8 @@ import { betterFetch } from '@better-fetch/fetch'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import {format} from "date-fns"
+import { db } from '#/db'
+import { kyc } from '#/db/schema'
 
 interface IDCheckResponse<T> {
 	success: boolean;
@@ -98,6 +100,16 @@ export const verifyKYC = createServerFn({ method: 'POST' }).validator(
 	}
 
 	// TODO: Persist to DB after matching verification
+	await db.insert(kyc)
+		.values({
+			reference: "",
+			...data,
+		})
+		.returning()
+		.catch((_error: any) => {
+			console.log(`Failed to save kyc details`, {_error})
+			throw new Error('Failed to save kyc details, please try again later.')
+		})
 
 	return response
 })

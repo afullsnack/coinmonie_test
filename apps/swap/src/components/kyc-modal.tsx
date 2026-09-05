@@ -142,7 +142,6 @@ export function KYCModal({ open, onOpen, children }: KYCModalProps) {
   const handleSubmit = async (data: FormState) => {
     if (image) {
       const dataUrl = await blobToBase64(image.blob)
-      console.log(`Form submission state:_`, { data, dataUrl })
 
       kyc.mutate({
         firstName: data.firstName,
