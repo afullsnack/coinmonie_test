@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 */.DS_Store
 .vercel
 .env
+drizzle

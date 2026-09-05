@@ -31,6 +31,8 @@ import {
 } from '#/server/admin.functions'
 import { adminListWaitlist, joinWaitlist } from '#/server/waitlist.functions'
 import { showErrorDialog } from '#/lib/error-dialog-store'
+import { verifyKYC } from '#/server/kyc.functions'
+import type {KYCInputSchema} from "#/server/kyc.functions"
 
 export function errorMessage(error: unknown, fallback: string): string {
   const message =
@@ -342,5 +344,15 @@ export const bankLookUpMutationOptions = mutationOptions({
     }),
   onError(error) {
     showErrorDialog(errorMessage(error, 'Double-check the account or number and try again.'))
+  },
+})
+
+
+// KYC mutation
+export const kycMutationOptions = mutationOptions({
+	mutationKey: ['kyc'],
+	mutationFn: async (values: KYCInputSchema) => await verifyKYC({ data: values }),
+	onError(error) {
+    showErrorDialog(errorMessage(error, 'KYC verification failed, confirm your details and try again.'))
   },
 })

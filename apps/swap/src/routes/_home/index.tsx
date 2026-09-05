@@ -21,6 +21,8 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { FiatSelectorModal } from '#/components/fiat-selector-modal'
 import { toast } from 'sonner'
 import { dismissErrorDialog, showErrorDialog } from '#/lib/error-dialog-store'
+import { KYCModal } from '#/components/kyc-modal'
+import { getKYCStatus } from '#/lib/my-kyc-status'
 
 export const Route = createFileRoute('/_home/')({ component: Home })
 
@@ -75,6 +77,7 @@ function Home() {
   const [address, setAddress] = useState<string | null>(null)
   const [reference, setReference] = useState<string | null>(null)
 	const [providerAmountError, setProviderAmountError] = useState<string | null>(null)
+	const [kycModalOpen, setKYCModalOpen] = useState<boolean>(false)
 	const rate = useMutation({
 		...offrampRateMutationOptions,
 		onError(error) {
@@ -270,7 +273,13 @@ function Home() {
 		return () => clearTimeout(timeout)
 	}, [sendAmount, sendToken, fiat])
 
-  const handleSwap = async () => {
+	const handleSwap = async () => {
+		const status = getKYCStatus()
+		if (status === "unverified") {
+			setKYCModalOpen(true)
+			return
+		}
+
 		if (!sendAmount || !selectedBank || !accountNumber || !bankLookup.data || !fiat || !rate.data?.rate || amountError) return
 		const amount = Number.parseFloat(sendAmount)
 		if (!Number.isFinite(amount) || amount <= 0) return
@@ -602,7 +611,9 @@ function Home() {
         open={isFiatModalOpen}
         onFiatSelect={setFiat}
         selectedFiat={fiat}
-      />
+			/>
+
+			<KYCModal open={kycModalOpen} onOpen={setKYCModalOpen} />
 
 			{fiat && (
         <BankSelectorModal

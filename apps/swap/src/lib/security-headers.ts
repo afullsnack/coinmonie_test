@@ -12,7 +12,7 @@ export function applySecurityHeaders(response: Response) {
 		"form-action 'self'",
 		"object-src 'none'",
 		`connect-src 'self' https://${SWITCH_API_HOST}`,
-		"img-src 'self' data: https:",
+		"img-src 'self' data: https: blob:",
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' data: https://fonts.gstatic.com",
 		// unsafe-eval is dev-only, needed by Vite's module runner.
@@ -23,7 +23,7 @@ export function applySecurityHeaders(response: Response) {
 	response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
 	response.headers.set('X-Content-Type-Options', 'nosniff')
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-	response.headers.set('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()')
+	response.headers.set('Permissions-Policy', 'geolocation=(), camera=(self), microphone=(self), payment=()')
 	response.headers.set('X-XSS-Protection', '0')
 	response.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
 	response.headers.set('Cross-Origin-Resource-Policy', 'same-origin')
