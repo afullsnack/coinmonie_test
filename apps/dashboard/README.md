@@ -17,6 +17,13 @@ To build this application for production:
 pnpm build
 ```
 
+# Deployment to cloudflare
+To deploy to cloudflare worker/pages:
+
+```bash
+pnpm deploy
+```
+
 ## Styling
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
