@@ -12,6 +12,5 @@
 		"BETTER_AUTH_TRUSTED_ORIGINS": "https://coinmonie-dashboard.miraclef60.workers.dev",
 		"BETTER_AUTH_URL": "https://coinmonie-dashboard.miraclef60.workers.dev",
 		"NODE_ENV": "production"
-	},
-	"assets": {}
+	}
 }
