@@ -17,7 +17,7 @@ const config = defineConfig({
     devtools(),
     nitro({
       rollupConfig: { external: [/^@sentry\//] },
-      serverDir: './src/server',
+      // serverDir: './src/server',
       // experimental: { tasks: true },
       // tasks: {
       //   'db:migration:sqlite': {
@@ -33,8 +33,8 @@ const config = defineConfig({
           // TODO: Update this for prod
           if (process.env.NODE_ENV !== 'production') return
           execSync('npx drizzle-kit generate', { stdio: 'inherit' })
-          execSync('npx drizzle-kit migrate', { stdio: 'inherit' })
-          console.log(`Generation ran`)
+          execSync('npx drizzle-kit push', { stdio: 'inherit' })
+          console.log(`[drizzle] Generation ran`)
         },
       },
     }),
