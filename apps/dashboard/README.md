@@ -1,4 +1,4 @@
-Welcome to your new TanStack Start app!
+Coinmonie Business Dashboard
 
 # Getting Started
 
