@@ -3,6 +3,7 @@
 	"name": "coinmonie-dashboard",
 	"main": "@tanstack/react-start/server-entry",
 	"compatibility_date": "2026-10-01",
+	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
 	},
