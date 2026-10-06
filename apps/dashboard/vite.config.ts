@@ -6,7 +6,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
-// import { cloudflare } from "@cloudflare/vite-plugin";
 import { nitro } from 'nitro/vite'
 // import { fileURLToPath } from 'node:url'
 import { execSync } from 'node:child_process'
@@ -31,10 +30,10 @@ const config = defineConfig({
       hooks: {
         async compiled() {
           // TODO: Update this for prod
-          if (process.env.NODE_ENV !== 'production') return
+					if (process.env.NODE_ENV !== 'production') return
           execSync('npx drizzle-kit generate', { stdio: 'inherit' })
           execSync('npx drizzle-kit push', { stdio: 'inherit' })
-          console.log(`[drizzle] Generation ran`)
+          console.log(`[drizzle] Migration ran...`)
         },
       },
     }),
@@ -42,11 +41,6 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),
-    // cloudflare({
-    //   viteEnvironment: {
-    //     name: "ssr"
-    //   }
-    // }),
   ],
 })
 

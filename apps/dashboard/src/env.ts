@@ -1,6 +1,8 @@
 import { createEnv } from '@t3-oss/env-core'
 import { z } from 'zod'
 
+console.log('Process typeof', typeof process, {process: process.env})
+
 export const env = createEnv({
   /**
    * Server-only variables. Never import these into client code; accessing one
@@ -19,7 +21,7 @@ export const env = createEnv({
       .default('file:./local.db'),
     DATABASE_AUTH_TOKEN: z.string().min(1).optional(),
 
-    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_SECRET: z.string().min(12),
     BETTER_AUTH_URL: z.url(),
     /** Comma-separated extra origins allowed to call the auth API. */
     BETTER_AUTH_TRUSTED_ORIGINS: z
