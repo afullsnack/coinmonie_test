@@ -11,17 +11,22 @@ import { nitro } from 'nitro/vite'
 import { execSync } from 'node:child_process'
 
 const config = defineConfig({
-	resolve: { tsconfigPaths: true },
-	ssr: {
-		noExternal: [/@better-auth\/passkey/],
-		external: [],
-	},
-	build: {
-		commonjsOptions: {
-			transformMixedEsModules: true,
-			include: [/node_modules/, /.output/]
-		}
-	},
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      tslib: 'tslib/tslib.es6.mjs',
+    },
+  },
+  ssr: {
+    noExternal: [/@better-auth\/passkey/],
+    external: [],
+  },
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      include: [/node_modules/, /.output/],
+    },
+  },
   plugins: [
     devtools(),
     nitro({
@@ -36,11 +41,11 @@ const config = defineConfig({
       //   },
       // },
       // Auto generated cloudflare cron trigger
-			// scheduledTasks: {},
+      // scheduledTasks: {},
       hooks: {
         async compiled() {
           // TODO: Update this for prod
-					if (process.env.NODE_ENV !== 'production') return
+          if (process.env.NODE_ENV !== 'production') return
           execSync('npx drizzle-kit generate', { stdio: 'inherit' })
           execSync('npx drizzle-kit push', { stdio: 'inherit' })
           console.log(`[drizzle] Migration ran...`)
