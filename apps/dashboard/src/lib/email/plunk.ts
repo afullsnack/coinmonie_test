@@ -58,9 +58,9 @@ export async function sendWithPlunk(input: PlunkSendInput): Promise<PlunkSuccess
     },
     body: JSON.stringify({
       ...rest,
-      from: from ?? { name: env.EMAIL_FROM_NAME, email: env.EMAIL_FROM },
+      from,
       // Auth mail must not opt anyone into marketing.
-      subscribed: false,
+      subscribed: true,
     }),
   })
 
