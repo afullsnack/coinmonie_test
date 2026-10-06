@@ -11,7 +11,17 @@ import { nitro } from 'nitro/vite'
 import { execSync } from 'node:child_process'
 
 const config = defineConfig({
-  resolve: { tsconfigPaths: true },
+	resolve: { tsconfigPaths: true },
+	ssr: {
+		noExternal: [/@better-auth\/passkey/],
+		external: [],
+	},
+	build: {
+		commonjsOptions: {
+			transformMixedEsModules: true,
+			include: [/node_modules/, /.output/]
+		}
+	},
   plugins: [
     devtools(),
     nitro({
