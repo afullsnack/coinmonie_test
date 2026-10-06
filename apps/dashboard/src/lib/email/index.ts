@@ -19,5 +19,6 @@ export async function sendEmail(email: Email) {
     console.info(`\n[email] to=${email.to} subject="${email.subject}"\n${text}\n`)
     return
   }
-  await sendWithPlunk(email)
+	await sendWithPlunk(email)
+		.catch(console.log)
 }

@@ -1,8 +1,6 @@
 import { createEnv } from '@t3-oss/env-core'
 import { z } from 'zod'
 
-console.log('Process typeof', typeof process, {process: process.env})
-
 export const env = createEnv({
   /**
    * Server-only variables. Never import these into client code; accessing one
