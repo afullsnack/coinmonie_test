@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "coinmonie-dashboard",
-	"main": "@tanstack/react-start/server-entry",
+	"main": ".output/server/index.mjs",
 	"compatibility_date": "2026-10-01",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
@@ -12,5 +12,8 @@
 		"BETTER_AUTH_TRUSTED_ORIGINS": "https://coinmonie-dashboard.miraclef60.workers.dev",
 		"BETTER_AUTH_URL": "https://coinmonie-dashboard.miraclef60.workers.dev",
 		"NODE_ENV": "production"
+	},
+	"assets": {
+		"directory": ".output/public"
 	}
 }
