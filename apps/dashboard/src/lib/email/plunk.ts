@@ -62,9 +62,12 @@ export async function sendWithPlunk(input: PlunkSendInput): Promise<PlunkSuccess
       // Auth mail must not opt anyone into marketing.
       subscribed: true,
     }),
-  })
+	}).catch((error: any) => {
+		console.log(`Catch request error`, { error })
+		throw new Error('Failed to make send request to api')
+	}).then(res => res)
 
-  const payload = (await response.json().catch(() => null)) as PlunkSuccess | PlunkError | null
+  const payload = (await response.json().catch(console.log)) as PlunkSuccess | PlunkError | null
   if (!response.ok || !payload?.success) {
     const error = payload && !payload.success ? payload.error : undefined
     throw new PlunkRequestError(
