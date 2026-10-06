@@ -3,7 +3,7 @@ import { sendWithPlunk } from './plunk'
 
 export * from './templates'
 
-type Email = { to: string; subject: string; body: string; idempotencyKey?: string }
+type Email = { to: string; subject: string; body: string; from?: string | { email: string; name?: string }; idempotencyKey?: string }
 
 /**
  * Delivers auth emails through Plunk. Without `PLUNK_SECRET_KEY` outside

@@ -111,7 +111,7 @@ export const auth = betterAuth({
       sendVerificationOTP: async ({ email, otp, type }) => {
         const minutes = OTP_EXPIRES_IN / 60
         if (type === 'email-verification') {
-          await sendEmail({ to: email, ...verificationCodeEmail({ otp, minutes }) })
+					await sendEmail({ to: email, ...verificationCodeEmail({ otp, minutes }) })
         } else if (type === 'sign-in') {
           // Used as a "Confirm it's you" code before adding a passkey.
           await sendEmail({ to: email, ...confirmIdentityEmail({ otp, minutes }) })

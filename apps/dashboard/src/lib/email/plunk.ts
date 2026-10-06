@@ -58,9 +58,9 @@ export async function sendWithPlunk(input: PlunkSendInput): Promise<PlunkSuccess
     },
     body: JSON.stringify({
       ...rest,
-      from,
+      from: typeof from === "object"? from : {name: "Coinmonie", email: from || 'noreply@baggit.link'},
       // Auth mail must not opt anyone into marketing.
-      subscribed: true,
+      subscribed: false,
     }),
 	}).catch((error: any) => {
 		console.log(`Catch request error`, { error })
