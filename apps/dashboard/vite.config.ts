@@ -21,12 +21,6 @@ const config = defineConfig({
     noExternal: [/@better-auth\/passkey/],
     external: [],
   },
-  build: {
-    commonjsOptions: {
-      transformMixedEsModules: true,
-      include: [/node_modules/, /.output/],
-    },
-  },
   plugins: [
     devtools(),
     nitro({
@@ -44,7 +38,6 @@ const config = defineConfig({
       // scheduledTasks: {},
       hooks: {
         async compiled() {
-          // TODO: Update this for prod
           if (process.env.NODE_ENV !== 'production') return
           execSync('npx drizzle-kit generate', { stdio: 'inherit' })
           execSync('npx drizzle-kit push', { stdio: 'inherit' })
